@@ -480,7 +480,7 @@ def get_team_schedule(team_id):
         print(f"Error fetching schedule: {e}")
         return None
 
-def get_tonights_game_context(player_name):
+def get_tonights_game_context(player_name, spread, total):
     """
     Main function to get game context for a player.
     Now dynamically determines opponent, home/away, and fetches odds.
@@ -533,8 +533,8 @@ def get_tonights_game_context(player_name):
         'opponent': opponent_team,
         'is_home': 1 if is_home else 0,
         # tis spread
-        'spread': 9.5,
-        'total': 232.5,
+        'spread': spread,
+        'total': total,
     }
     
     print(f"Game context for {team_abbr}: {context}")
@@ -751,7 +751,7 @@ def get_default_defense_stats():
         'opp_fd_allowed': 45.0,
     }
 
-def create_complete_prediction(player_name, target_stat='fantasy_points'):
+def create_complete_prediction(player_name, target_stat, spread, total):
     """
     Complete prediction pipeline with real usage rate integration
     """
@@ -785,7 +785,7 @@ def create_complete_prediction(player_name, target_stat='fantasy_points'):
     print(f"Other features: { {k: round(v, 2) for k, v in player_features.items() if k != 'usage_rate'} }")
     
     # 4. Get Game Context
-    game_context = get_tonights_game_context(player_name)
+    game_context = get_tonights_game_context(player_name, spread, total)
     
     # 5. Get Opponent Defense Stats
     position = get_player_position(player_name)
@@ -879,17 +879,19 @@ def print_prediction_results(result):
 
 # Main execution
 if __name__ == "__main__":
-    player_to_predict = "Nic Claxton"
+    player_to_predict = "Tyrese Maxey"
+    spread = 1.5
+    total = 241.5
 
     # Choose what to predict
     target_options = ['points', 'rebounds', 'assists']
-    target_choice = 'rebounds'  # Change this to predict different stats
+    target_choice = 'points'  # Change this to predict different stats
     
     print("🏀 NBA Player Projection System")
     print("Using Multiple ML Models: Linear, Bayesian, Random Forest, XGBoost, LightGBM, Neural Networks")
     print("="*70)
     
-    result = create_complete_prediction(player_to_predict, target_choice)
+    result = create_complete_prediction(player_to_predict, target_choice, spread, total)
     
     if result:
         print_prediction_results(result)
