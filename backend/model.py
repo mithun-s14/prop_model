@@ -448,7 +448,6 @@ def get_player_team_id(player_id):
         print(f"Error fetching player team: {e}")
         return None
 
-
 def get_team_schedule(team_id):
     """
     Fetch today's NBA games and return the matchup if the specified team is playing.
@@ -714,7 +713,7 @@ def safe_float(value):
     except (ValueError, TypeError):
         return 0.0
 
-# Optional: Function to analyze defense matchups for your model
+# Function to analyze defense matchups for your model
 def analyze_defense_matchup(player_team, opponent_team, player_position):
     """
     Analyze the defense matchup for a specific player
@@ -726,8 +725,10 @@ def analyze_defense_matchup(player_team, opponent_team, player_position):
     matchup_score = (
         defense_stats['opp_pts_allowed'] / 25.0 +  # Normalize to league average ~25
         defense_stats['opp_fg_pct_allowed'] / 45.0 +  # Normalize to league average ~45%
-        defense_stats['opp_fd_allowed'] / 45.0  # Normalize to league average ~45 FD points
-    ) / 3.0
+        defense_stats['opp_fd_allowed'] / 40.0 +  # Normalize to league average ~40 FD points
+        defense_stats['opp_reb_allowed'] / 8.0 +  # Normalize to league average ~8
+        defense_stats['opp_ast_allowed'] / 6.0    # Normalize to league average ~6
+    ) / 5.0  # Average the factors
     
     # Invert so higher = better matchup
     matchup_rating = 1.0 / matchup_score if matchup_score > 0 else 1.0
@@ -880,8 +881,8 @@ def print_prediction_results(result):
 # Main execution
 if __name__ == "__main__":
     player_to_predict = "Tyrese Maxey"
-    spread = 1.5
-    total = 241.5
+    spread = -1.5
+    total = 221.5
 
     # Choose what to predict
     target_options = ['points', 'rebounds', 'assists']
