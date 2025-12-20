@@ -1,13 +1,42 @@
 # api.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import numpy as np
+import traceback
 from model import create_complete_prediction
 
 app = Flask(__name__)
-CORS(app)  # Allow requests from React app
 
-@app.route('/predict', methods=['POST'])
+# Enable CORS for all routes and origins
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
+
+# Converts numpy/pandas types to native Python types for JSON serialization
+def convert_to_json_serializable(obj):
+    if isinstance(obj, (np.integer, np.int64, np.int32)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, np.float64, np.float32)):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {key: convert_to_json_serializable(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_json_serializable(item) for item in obj]
+    else:
+        return obj
+
+@app.route('/predict', methods=['POST', 'OPTIONS'])
+# Handle preflight request
 def predict():
+    if request.method == 'OPTIONS':
+        return '', 204
+    
     try:
         data = request.json
         
@@ -16,36 +45,65 @@ def predict():
         spread = data.get('spread')
         total = data.get('total')
         
+        print(f"\n=== Received Request ===")
+        print(f"Player: {player_name}")
+        print(f"Target Stat: {target_stat}")
+        print(f"Spread: {spread}")
+        print(f"Total: {total}")
+        print("=" * 30)
+        
         # Validate inputs
         if not all([player_name, target_stat, spread is not None, total is not None]):
             return jsonify({'error': 'Missing required fields'}), 400
         
-        # Call your prediction function
+        # Call prediction function
+        print("Calling create_complete_prediction...")
         result = create_complete_prediction(player_name, target_stat, spread, total)
         
         if result is None:
-            return jsonify({'error': 'Prediction failed. Check player name or data availability.'}), 404
+            error_msg = f'Prediction failed for {player_name}. Player may not be found or insufficient data available.'
+            print(f"ERROR: {error_msg}")
+            return jsonify({'error': error_msg}), 404
+        
+        print("Prediction successful! Converting to JSON...")
+        
+        # Convert all numpy/pandas types to native Python types
+        result = convert_to_json_serializable(result)
         
         # Format response to match frontend expectations
         response = {
             'player': result['player'],
-            'prediction': result['prediction'],
-            'confidence': result['confidence'],
+            'prediction': float(result['prediction']),
+            'confidence': float(result['confidence']),
             'target_stat': result['target_stat'],
-            'usage_rate': result['usage_rate'],
+            'usage_rate': float(result['usage_rate']),
             'game_context': result['game_context'],
             'individual_predictions': result['individual_predictions']
         }
         
+        print("Response ready, sending to frontend...")
         return jsonify(response)
         
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({'error': str(e)}), 500
+        error_msg = str(e)
+        print(f"\n!!! ERROR !!!")
+        print(f"Error message: {error_msg}")
+        print(f"Full traceback:")
+        traceback.print_exc()
+        print("=" * 50)
+        
+        return jsonify({
+            'error': f'Prediction error: {error_msg}',
+            'details': 'Check server console for full traceback'
+        }), 500
 
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'healthy'})
 
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({'message': 'NBA Prediction API is running!'})
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='0.0.0.0', port=3000)

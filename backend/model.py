@@ -880,7 +880,7 @@ def print_prediction_results(result):
 
 # Main execution
 if __name__ == "__main__":
-    player_to_predict = "Tyrese Maxey"
+    player_to_predict = ""
     spread = -1.5
     total = 221.5
 
