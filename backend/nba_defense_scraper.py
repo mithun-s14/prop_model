@@ -7,6 +7,7 @@ from io import StringIO
 import pandas as pd
 import time
 import pickle
+import os
 
 def scrape_hashtag_basketball_table4():
     """
@@ -118,9 +119,9 @@ def clean_position_data(df):
     
     return cleaned_df
 
-def save_data(positions_data, filename='nba_defense_data.pkl'):
+def save_data(positions_data, filename='backend/nba_defense_data.pkl'):
     """
-    Save the scraped data to a pickle file
+    Save the scraped data to a pickle file in the backend folder
     """
     try:
         with open(filename, 'wb') as f:
@@ -129,7 +130,7 @@ def save_data(positions_data, filename='nba_defense_data.pkl'):
     except Exception as e:
         print(f"Error saving data: {str(e)}")
 
-def export_to_excel(positions_data, filename='nba_defense_data.xlsx'):
+def export_to_excel(positions_data, filename='backend/nba_defense_data.xlsx'):
     """
     Export data to Excel with separate sheets for each position
     """

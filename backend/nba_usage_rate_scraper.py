@@ -4,11 +4,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
-import pickle
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import time
-import os
-from datetime import datetime
 
 def scrape_nba_usage_rates():
     """
@@ -16,7 +13,6 @@ def scrape_nba_usage_rates():
     """
     # Set up Chrome options
     chrome_options = Options()
-    # chrome_options.add_argument("--headless=new")  # Remove to see browser
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
@@ -105,29 +101,19 @@ def scrape_nba_usage_rates():
                     EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[title="Next Page Button"]'))
                 )
                 
-                # Check if the button is disabled (we're on the last page)
+                # Check if we're on last page
                 if next_button.get_attribute('disabled'):
                     print("Reached the last page!")
                     break
                 
-                # Click the next page button using JavaScript
+                # Click the next page button
                 print("Clicking next page button...")
                 driver.execute_script("arguments[0].click();", next_button)
-                
-                # Wait for the page to load - multiple strategies
+                # Wait for the page to load
                 print("Waiting for next page to load...")
-                
                 # Wait for the table to refresh
-                time.sleep(2)  # Initial wait
-                
-                # # Wait for loading indicator to disappear (if any)
-                # try:
-                #     # Wait for any loading spinner to disappear
-                #     wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "LoadingIndicator")))
-                # except:
-                #     pass  # No loading indicator, that's fine
-                
-                # Strategy 3: Wait for the table to be present and have data
+                time.sleep(2)
+                # Wait for the table to be present and have data
                 wait.until(lambda driver: len(driver.find_elements(By.CSS_SELECTOR, "table.Crom_table__p1iZz tbody tr")) > 0)
                 
                 print("Next page loaded successfully")
@@ -226,9 +212,9 @@ def save_usage_data(usage_df):
     cleaned_df = clean_usage_data(usage_df)
     
     # Also save a generic latest version for easy access
-    cleaned_df.to_csv('nba_usage_rates_latest.csv', index=False)
-    cleaned_df.to_pickle('nba_usage_rates_latest.pkl')
-    print("Latest versions saved as 'nba_usage_rates_latest.csv' and 'nba_usage_rates_latest.pkl'")
+    cleaned_df.to_csv('backend/nba_usage_rates_latest.csv', index=False)
+    cleaned_df.to_pickle('backend/nba_usage_rates_latest.pkl')
+    print("Latest versions saved as 'backend/nba_usage_rates_latest.csv' and 'backend/nba_usage_rates_latest.pkl'")
     
     return 'nba_usage_rates_latest.csv', 'nba_usage_rates_latest.pkl'
 
