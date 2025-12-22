@@ -8,3 +8,4 @@ lightgbm==4.1.0
 nba-api==1.4.1
 gunicorn==21.2.0
 selenium==4.11.2
+webdriver-manager==4.3.0
