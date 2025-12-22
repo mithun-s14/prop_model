@@ -1,0 +1,76 @@
+name: Daily NBA Data Scraper
+
+on:
+  schedule:
+    # Run at 3 AM UTC every day
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        
+    - name: Run usage rate scraper
+      run: |
+        cd backend
+        python nba_usage_rate_scraper.py
+        
+    - name: Run defense scraper
+      run: |
+        cd backend
+        python nba_defense_scraper.py
+        
+    - name: Commit and push if changed
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        git add backend/*.pkl backend/*.csv
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update scraped data [automated]" && git push)
+```
+
+**Notes:**
+- Runs daily at 3 AM UTC
+- Automatically commits and pushes updated data files to GitHub
+- Render will detect the changes and redeploy automatically
+---
+
+## Part 3: Deploy to GitHub
+
+### **6. Create .gitignore**
+
+**`.gitignore`:**
+```
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+*.pyc
+
+# Node
+node_modules/
+build/
+.env.local
+.env.development.local
+
+# OS
+.DS_Store
+
+# Don't ignore data files - we need them for deployment
+# *.pkl
+# *.csv
