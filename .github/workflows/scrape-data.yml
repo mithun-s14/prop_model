@@ -40,38 +40,3 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git add backend/*.pkl backend/*.csv
         git diff --quiet && git diff --staged --quiet || (git commit -m "Update scraped data [automated]" && git push)
-
-
-# **Notes:**
-# - Runs daily at 8 AM UTC
-# - Automatically commits and pushes updated data files to GitHub
-# - Render will detect the changes and redeploy automatically
-
----
-
-## Part 3: Deploy to GitHub
-
-### **6. Create .gitignore**
-
-**`.gitignore`:**
-```
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-env/
-*.pyc
-
-# Node
-node_modules/
-build/
-.env.local
-.env.development.local
-
-# OS
-.DS_Store
-
-# Don't ignore data files - we need them for deployment
-# *.pkl
-# *.csv
