@@ -1,4 +1,5 @@
 # api.py
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
@@ -7,10 +8,16 @@ from model import create_complete_prediction
 
 app = Flask(__name__)
 
+# To allow requests from frontend
+allowed_origins = [
+    os.getenv('FRONTEND_URL', 'http://localhost:3000'),
+    'https://*.vercel.app'
+]
+
 # Enable CORS for all routes and origins
 CORS(app, resources={
     r"/*": {
-        "origins": "*",
+        "origins": allowed_origins,
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"]
     }
@@ -106,4 +113,6 @@ def home():
     return jsonify({'message': 'NBA Prediction API is running!'})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=3000)
+    if __name__ == '__main__':
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port, debug=False)
