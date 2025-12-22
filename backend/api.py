@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 # To allow requests from frontend
 allowed_origins = [
-    os.getenv('FRONTEND_URL', 'http://localhost:3000'),
+    os.getenv('FRONTEND_URL', 'http://localhost:5000'),
     'https://*.vercel.app'
 ]
 
