@@ -7,3 +7,4 @@ xgboost==2.0.3
 lightgbm==4.1.0
 nba-api==1.4.1
 gunicorn==21.2.0
+selenium==4.11.2
