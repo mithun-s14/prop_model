@@ -1,30 +1,48 @@
-# api.py
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
 import traceback
-from model import create_complete_prediction
+
+# Try importing model
+try:
+    from model import create_complete_prediction
+    MODEL_LOADED = True
+    print("✅ Model loaded successfully")
+except Exception as e:
+    MODEL_LOADED = False
+    print(f"⚠️ Warning: Could not load model - {e}")
+    traceback.print_exc()
 
 app = Flask(__name__)
 
-# To allow requests from frontend
-allowed_origins = [
-    os.getenv('FRONTEND_URL', 'http://localhost:5000'),
-    'https://*.vercel.app'
-]
-
-# Enable CORS for all routes and origins
+# Configure CORS properly for production
 CORS(app, resources={
     r"/*": {
-        "origins": allowed_origins,
+        "origins": [
+            "http://localhost:3000",
+            "https://prop-model.vercel.app",
+            "https://*.vercel.app"  # Allow all Vercel preview deployments
+        ],
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
     }
 })
 
-# Converts numpy/pandas types to native Python types for JSON serialization
+# Add CORS headers manually as well (belt and suspenders approach)
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    if origin:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
 def convert_to_json_serializable(obj):
+    """Convert numpy/pandas types to native Python types"""
     if isinstance(obj, (np.integer, np.int64, np.int32)):
         return int(obj)
     elif isinstance(obj, (np.floating, np.float64, np.float32)):
@@ -39,10 +57,13 @@ def convert_to_json_serializable(obj):
         return obj
 
 @app.route('/predict', methods=['POST', 'OPTIONS'])
-# Handle preflight request
 def predict():
+    # Handle preflight request
     if request.method == 'OPTIONS':
         return '', 204
+    
+    if not MODEL_LOADED:
+        return jsonify({'error': 'Model not loaded. Please check server logs.'}), 500
     
     try:
         data = request.json
@@ -63,7 +84,7 @@ def predict():
         if not all([player_name, target_stat, spread is not None, total is not None]):
             return jsonify({'error': 'Missing required fields'}), 400
         
-        # Call prediction function
+        # Call your prediction function
         print("Calling create_complete_prediction...")
         result = create_complete_prediction(player_name, target_stat, spread, total)
         
@@ -106,13 +127,12 @@ def predict():
 
 @app.route('/health', methods=['GET'])
 def health():
-    return jsonify({'status': 'healthy'})
+    return jsonify({'status': 'healthy', 'model_loaded': MODEL_LOADED})
 
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({'message': 'NBA Prediction API is running!'})
+    return jsonify({'message': 'NBA Prediction API is running!', 'model_loaded': MODEL_LOADED})
 
 if __name__ == '__main__':
-    if __name__ == '__main__':
-        port = int(os.environ.get('PORT', 5000))
-        app.run(host='0.0.0.0', port=port, debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
