@@ -7,7 +7,7 @@ xgboost==2.0.3
 lightgbm==4.3.0
 nba-api==1.4.1
 gunicorn==21.2.0
-selenium==4.16.2
+selenium==4.11.2
 webdriver-manager==4.0.2
 openpyxl==3.1.2
 lxml==5.1.0
