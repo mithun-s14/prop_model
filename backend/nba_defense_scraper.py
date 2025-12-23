@@ -3,6 +3,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from io import StringIO
 import pandas as pd
 import time
@@ -15,12 +17,19 @@ def scrape_hashtag_basketball_table4():
     """
     # Set up Chrome options
     chrome_options = Options()
-    # chrome_options.add_argument("--headless=new")  # Uncomment for headless
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-software-rasterizer")
+    chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_experimental_option(
         "prefs", {"profile.managed_default_content_settings.images": 2}
     )
     
-    driver = webdriver.Chrome(options=chrome_options)
+    # Use webdriver-manager to handle ChromeDriver
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     positions_data = {}
     
     try:
@@ -119,29 +128,37 @@ def clean_position_data(df):
     
     return cleaned_df
 
-def save_data(positions_data, filename='backend/nba_defense_data.pkl'):
+def save_data(positions_data, filename='nba_defense_data.pkl'):
     """
-    Save the scraped data to a pickle file in the backend folder
+    Save the scraped data to a pickle file
     """
     try:
-        with open(filename, 'wb') as f:
+        # Ensure we save in the current directory (backend folder)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        filepath = os.path.join(current_dir, filename)
+        
+        with open(filepath, 'wb') as f:
             pickle.dump(positions_data, f)
-        print(f"Data saved to {filename}")
+        print(f"Data saved to {filepath}")
     except Exception as e:
         print(f"Error saving data: {str(e)}")
 
-def export_to_excel(positions_data, filename='backend/nba_defense_data.xlsx'):
+def export_to_excel(positions_data, filename='nba_defense_data.xlsx'):
     """
     Export data to Excel with separate sheets for each position
     """
     try:
-        with pd.ExcelWriter(filename, engine='openpyxl') as writer:
+        # Ensure we save in the current directory (backend folder)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        filepath = os.path.join(current_dir, filename)
+        
+        with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
             for position, df in positions_data.items():
                 if not df.empty:
                     # Reset index for cleaner output
                     df.reset_index(drop=True, inplace=True)
                     df.to_excel(writer, sheet_name=position, index=False)
-        print(f"Data exported to {filename}")
+        print(f"Data exported to {filepath}")
     except Exception as e:
         print(f"Error exporting to Excel: {str(e)}")
 
@@ -158,15 +175,13 @@ def display_data_summary(positions_data):
         if not df.empty:
             # Display key columns
             display_cols = ['Team', 'PTS', 'FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO']
-            available_cols = [col for col in display_cols if col in df.columns]
+            available_cols = [col for col in display_cols if col in display_cols]
             
             if available_cols:
                 print(df[available_cols].head().to_string(index=False))
 
 # Main execution
 if __name__ == "__main__":
-    print("Starting NBA Defense vs Position scraper...")
-    
     # Scrape the data
     defense_data = scrape_hashtag_basketball_table4()
     
@@ -179,16 +194,5 @@ if __name__ == "__main__":
         
         # Export to Excel
         export_to_excel(defense_data)
-        
-        print("\nScraping completed successfully!")
-        
-        # Final summary
-        print(f"\nFinal Results:")
-        total_rows = sum(len(df) for df in defense_data.values())
-        print(f"   Total rows extracted: {total_rows}")
-        for pos in ['PG', 'SG', 'SF', 'PF', 'C']:
-            if pos in defense_data:
-                df = defense_data[pos]
-                print(f"   {pos}: {len(df)} teams")
     else:
         print("No data was scraped successfully")

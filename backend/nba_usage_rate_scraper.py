@@ -1,9 +1,12 @@
 import pandas as pd
+import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import time
 
@@ -13,11 +16,19 @@ def scrape_nba_usage_rates():
     """
     # Set up Chrome options
     chrome_options = Options()
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-software-rasterizer")
+    chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    chrome_options.add_argument("--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     
-    driver = webdriver.Chrome(options=chrome_options)
+    # Use webdriver-manager to handle ChromeDriver
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     all_data = []  # Store data from all pages
     headers = []  # Store headers once
     
@@ -154,9 +165,6 @@ def scrape_nba_usage_rates():
         
     except Exception as e:
         print(f"Error during scraping: {e}")
-        import traceback
-        traceback.print_exc()
-        driver.save_screenshot("scraping_error.png")
         return None
     finally:
         driver.quit()
@@ -211,10 +219,16 @@ def save_usage_data(usage_df):
     # Clean the data first
     cleaned_df = clean_usage_data(usage_df)
     
-    # Also save a generic latest version for easy access
-    cleaned_df.to_csv('backend/nba_usage_rates_latest.csv', index=False)
-    cleaned_df.to_pickle('backend/nba_usage_rates_latest.pkl')
-    print("Latest versions saved as 'backend/nba_usage_rates_latest.csv' and 'backend/nba_usage_rates_latest.pkl'")
+    # Get the directory where this script is located
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Save files in the current directory (backend folder)
+    csv_path = os.path.join(current_dir, 'nba_usage_rates_latest.csv')
+    pkl_path = os.path.join(current_dir, 'nba_usage_rates_latest.pkl')
+    
+    cleaned_df.to_csv(csv_path, index=False)
+    cleaned_df.to_pickle(pkl_path)
+    print(f"Latest versions saved as '{csv_path}' and '{pkl_path}'")
     
     return 'nba_usage_rates_latest.csv', 'nba_usage_rates_latest.pkl'
 
