@@ -8,10 +8,10 @@ import traceback
 try:
     from model import create_complete_prediction
     MODEL_LOADED = True
-    print("✅ Model loaded successfully")
+    print("Model loaded successfully")
 except Exception as e:
     MODEL_LOADED = False
-    print(f"⚠️ Warning: Could not load model - {e}")
+    print(f"Warning: Could not load model - {e}")
     traceback.print_exc()
 
 app = Flask(__name__)
