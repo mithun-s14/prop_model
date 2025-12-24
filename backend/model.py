@@ -28,12 +28,12 @@ class NBAProjectionModel:
     def initialize_models(self):
         """Initialize all the ML models"""
         self.models = {
-            'linear': LinearRegression(),
-            'bayesian': BayesianRidge(),
+            # 'linear': LinearRegression(),
+            # 'bayesian': BayesianRidge(),
             'random_forest': RandomForestRegressor(n_estimators=50, random_state=42, max_depth=8),
             'gradient_boost': GradientBoostingRegressor(n_estimators=50, random_state=42, max_depth=6),
             'xgboost': xgb.XGBRegressor(n_estimators=50, random_state=42, max_depth=6, learning_rate=0.1),
-            'lightgbm': lgb.LGBMRegressor(n_estimators=50, random_state=42, max_depth=6, learning_rate=0.1),
+            # 'lightgbm': lgb.LGBMRegressor(n_estimators=50, random_state=42, max_depth=6, learning_rate=0.1),
         }
     
     def create_synthetic_training_data(self, player_features, game_context, defense_stats, player_name):

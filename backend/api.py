@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
 import traceback
+import gc
 
 # Try importing model
 try:
@@ -92,6 +93,8 @@ def predict():
             error_msg = f'Prediction failed for {player_name}. Player may not be found or insufficient data available.'
             print(f"ERROR: {error_msg}")
             return jsonify({'error': error_msg}), 404
+        
+        gc.collect()  # Clean up memory
         
         print("Prediction successful! Converting to JSON...")
         
