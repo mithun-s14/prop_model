@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 import xgboost as xgb
-import lightgbm as lgb
+# import lightgbm as lgb
 import pickle
 from datetime import datetime, timedelta
 import warnings
