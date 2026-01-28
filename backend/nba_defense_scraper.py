@@ -189,9 +189,6 @@ if __name__ == "__main__":
         # Display summary
         display_data_summary(defense_data)
         
-        # Save the data
-        save_data(defense_data)
-        
         # Export to Excel
         export_to_excel(defense_data)
     else:
