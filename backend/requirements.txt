@@ -1,0 +1,12 @@
+flask==3.0.0
+flask-cors==4.0.0
+pandas==2.2.0
+numpy==1.26.4
+scikit-learn==1.4.0
+xgboost==2.0.3
+nba-api==1.4.1
+gunicorn==21.2.0
+selenium==4.16.0
+webdriver-manager==4.0.2
+openpyxl==3.1.2
+lxml==5.1.0
