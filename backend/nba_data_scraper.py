@@ -201,7 +201,7 @@ def main():
     all_teams = scrape_all_teams()
     
     # 2. Get active players from team rosters (MUCH FASTER!)
-    active_players, player_info_list = scrape_active_players_from_rosters(season='2024-25')
+    active_players, player_info_list = scrape_active_players_from_rosters(season='2025-26')
     
     # 3. Scrape game logs for active players
     scrape_player_gamelogs(active_players, last_n_games=10)
