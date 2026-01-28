@@ -907,7 +907,7 @@ def create_complete_prediction(player_name, target_stat, spread, total):
         return {
             'player': player_name,
             'prediction': ensemble_pred,
-            'confidence': confidence * 100,
+            'confidence': confidence,
             'individual_predictions': individual_preds,
             'features': final_feature_dict,
             'game_context': game_context,
