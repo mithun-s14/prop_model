@@ -57,20 +57,7 @@ jobs:
         cd backend
         pip install --upgrade pip
         pip install -r requirements.txt
-    
-    - name: Run NBA data scraper
-      run: |
-        cd backend
-        python nba_data_scraper.py
-      env:
-        WDM_LOG: '0'
         
-    - name: Run usage rate scraper
-      run: |
-        cd backend
-        python nba_usage_rate_scraper.py
-      env:
-        WDM_LOG: '0'
         
     - name: Run defense scraper
       run: |
