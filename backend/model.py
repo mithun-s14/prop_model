@@ -130,105 +130,105 @@ class NBAProjectionModel:
         features_df = pd.DataFrame(features_list)
         return features_df, targets
     
-def train_models_on_the_fly(self, player_features, game_context, defense_stats, player_name, target_name='fantasy_points'):
-    """
-    Train models using synthetic data with real usage rate
-    """
-    print(f"Training models for {target_name} using synthetic data...")
-    
-    # Create synthetic training data
-    features_df, targets = self.create_synthetic_training_data(player_features, game_context, defense_stats, player_name)
-    y = targets[target_name]
-    
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(
-        features_df, y, test_size=0.2, random_state=42
-    )
-    
-    # Scale features
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    
-    self.scalers[target_name] = scaler
-    
-    trained_models = {}
-    model_scores = {}  # Store R² scores
-    
-    for name, model in self.models.items():
-        try:
-            # Choose scaled or unscaled data
-            if name in ['linear', 'bayesian']:
-                X_train_used, X_test_used = X_train_scaled, X_test_scaled
-            else:
-                X_train_used, X_test_used = X_train, X_test
-            
-            # Train model
-            model.fit(X_train_used, y_train)
-            trained_models[name] = model
-            
-            # Calculate R² score (goodness of fit)
-            score = model.score(X_test_used, y_test)
-            model_scores[name] = score
-            
-            # Make prediction on test set for evaluation
-            y_pred = model.predict(X_test_used)
-            mae = mean_absolute_error(y_test, y_pred)
-            
-            print(f"  {name:15} - MAE: {mae:.2f}, R²: {score:.3f}")
-            
-        except Exception as e:
-            print(f"  Error training {name}: {e}")
-    
-    # Store scores for confidence calculation
-    self.model_scores = model_scores
-    
-    return trained_models, features_df.columns.tolist()
+    def train_models_on_the_fly(self, player_features, game_context, defense_stats, player_name, target_name='fantasy_points'):
+        """
+        Train models using synthetic data with real usage rate
+        """
+        print(f"Training models for {target_name} using synthetic data...")
+        
+        # Create synthetic training data
+        features_df, targets = self.create_synthetic_training_data(player_features, game_context, defense_stats, player_name)
+        y = targets[target_name]
+        
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(
+            features_df, y, test_size=0.2, random_state=42
+        )
+        
+        # Scale features
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        
+        self.scalers[target_name] = scaler
+        
+        trained_models = {}
+        model_scores = {}  # Store R² scores
+        
+        for name, model in self.models.items():
+            try:
+                # Choose scaled or unscaled data
+                if name in ['linear', 'bayesian']:
+                    X_train_used, X_test_used = X_train_scaled, X_test_scaled
+                else:
+                    X_train_used, X_test_used = X_train, X_test
+                
+                # Train model
+                model.fit(X_train_used, y_train)
+                trained_models[name] = model
+                
+                # Calculate R² score (goodness of fit)
+                score = model.score(X_test_used, y_test)
+                model_scores[name] = score
+                
+                # Make prediction on test set for evaluation
+                y_pred = model.predict(X_test_used)
+                mae = mean_absolute_error(y_test, y_pred)
+                
+                print(f"  {name:15} - MAE: {mae:.2f}, R²: {score:.3f}")
+                
+            except Exception as e:
+                print(f"  Error training {name}: {e}")
+        
+        # Store scores for confidence calculation
+        self.model_scores = model_scores
+        
+        return trained_models, features_df.columns.tolist()
 
-def ensemble_prediction(self, features_df, models, feature_columns, target_name='fantasy_points'):
-    """
-    Make ensemble prediction with confidence based on model performance
-    """
-    predictions = []
-    model_names = []
-    
-    prediction_features = features_df[feature_columns]
-    
-    for name, model in models.items():
-        try:
-            if name in ['linear', 'bayesian']:
-                X_scaled = self.scalers[target_name].transform(prediction_features)
-                pred = model.predict(X_scaled)
-            else:
-                pred = model.predict(prediction_features)
-            
-            predictions.append(pred[0])
-            model_names.append(name)
-            
-        except Exception as e:
-            print(f"Error in {name} prediction: {e}")
-            continue
-    
-    if not predictions:
-        raise ValueError("No models produced valid predictions")
-    
-    # Ensemble prediction
-    ensemble_pred = np.mean(predictions)
-    
-    # Calculate confidence from model R² scores
-    avg_r2 = np.mean([self.model_scores.get(name, 0.8) for name in model_names])
-    
-    # Also factor in model agreement
-    pred_std = np.std(predictions)
-    agreement_factor = 1 - min(pred_std / ensemble_pred, 0.3) if ensemble_pred > 0 else 0.85
-    
-    # Combined confidence: 70% from R², 30% from agreement
-    confidence = (avg_r2 * 0.7 + agreement_factor * 0.3) * 100
-    confidence = min(99, max(60, confidence))  # Between 60-99%
-    
-    individual_predictions = dict(zip(model_names, predictions))
-    
-    return ensemble_pred, confidence, individual_predictions
+    def ensemble_prediction(self, features_df, models, feature_columns, target_name='fantasy_points'):
+        """
+        Make ensemble prediction with confidence based on model performance
+        """
+        predictions = []
+        model_names = []
+        
+        prediction_features = features_df[feature_columns]
+        
+        for name, model in models.items():
+            try:
+                if name in ['linear', 'bayesian']:
+                    X_scaled = self.scalers[target_name].transform(prediction_features)
+                    pred = model.predict(X_scaled)
+                else:
+                    pred = model.predict(prediction_features)
+                
+                predictions.append(pred[0])
+                model_names.append(name)
+                
+            except Exception as e:
+                print(f"Error in {name} prediction: {e}")
+                continue
+        
+        if not predictions:
+            raise ValueError("No models produced valid predictions")
+        
+        # Ensemble prediction
+        ensemble_pred = np.mean(predictions)
+        
+        # Calculate confidence from model R² scores
+        avg_r2 = np.mean([self.model_scores.get(name, 0.8) for name in model_names])
+        
+        # Also factor in model agreement
+        pred_std = np.std(predictions)
+        agreement_factor = 1 - min(pred_std / ensemble_pred, 0.3) if ensemble_pred > 0 else 0.85
+        
+        # Combined confidence: 70% from R², 30% from agreement
+        confidence = (avg_r2 * 0.7 + agreement_factor * 0.3) * 100
+        confidence = min(99, max(60, confidence))  # Between 60-99%
+        
+        individual_predictions = dict(zip(model_names, predictions))
+        
+        return ensemble_pred, confidence, individual_predictions
 
 def get_player_info(player_name):
     """
@@ -953,9 +953,9 @@ def print_prediction_results(result):
 
 # Main execution
 if __name__ == "__main__":
-    player_to_predict = "James Harden"
-    spread = -5.5
-    total = 221.5
+    player_to_predict = "Josh Giddey"
+    spread = -3.5
+    total = 235.5
 
     # Choose what to predict
     target_options = ['Points', 'Rebounds', 'Assists']
