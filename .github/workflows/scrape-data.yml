@@ -1,0 +1,93 @@
+name: Daily NBA Data Scraper
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          wget \
+          unzip \
+          xvfb \
+          libxi6 \
+          libnss3 \
+          libxss1 \
+          libasound2t64 \
+          libatk1.0-0 \
+          libatk-bridge2.0-0 \
+          libcups2 \
+          libdrm2 \
+          libgbm1 \
+          libgtk-3-0
+    
+    - name: Install Chrome
+      run: |
+        wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
+        rm google-chrome-stable_current_amd64.deb
+        
+    - name: Verify Chrome installation
+      run: |
+        google-chrome --version
+        which google-chrome
+        
+    - name: Install Python dependencies
+      run: |
+        cd backend
+        pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run NBA data scraper
+      run: |
+        cd backend
+        python nba_data_scraper.py
+      env:
+        WDM_LOG: '0'
+        
+    - name: Run usage rate scraper
+      run: |
+        cd backend
+        python nba_usage_rate_scraper.py
+      env:
+        WDM_LOG: '0'
+        
+    - name: Run defense scraper
+      run: |
+        cd backend
+        python nba_defense_scraper.py
+      env:
+        WDM_LOG: '0'
+        
+    - name: Commit and push if changed
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add backend/*.csv backend/*.json backend/*.xlsx backend/*.pkl
+        git diff --quiet && git diff --staged --quiet || (
+          git commit -m "Update scraped data [automated]" && 
+          git push &&
+          git push https://mithun14:$HF_TOKEN@huggingface.co/spaces/mithun14/prop-model main
+        )
