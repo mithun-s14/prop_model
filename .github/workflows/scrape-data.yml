@@ -73,8 +73,17 @@ jobs:
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add backend/*.csv backend/*.json backend/*.xlsx
-        git diff --quiet && git diff --staged --quiet || (
-          git commit -m "Update scraped data [automated]" && 
-          git push &&
-          git push https://mithun14:$HF_TOKEN@huggingface.co/spaces/mithun14/prop-model main
-        )
+        
+        # Check if there are changes
+        if ! git diff --quiet || ! git diff --staged --quiet; then
+          git commit -m "Update scraped data [automated]"
+          
+          # Push to GitHub
+          git push
+          
+          # Push to Hugging Face using token
+          git remote add hf https://huggingface.co/spaces/mithun14/prop-model || git remote set-url hf https://huggingface.co/spaces/mithun14/prop-model
+          git push https://mithun14:${HF_TOKEN}@huggingface.co/spaces/mithun14/prop-model main --force
+        else
+          echo "No changes to commit"
+        fi
