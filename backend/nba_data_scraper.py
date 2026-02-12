@@ -288,9 +288,9 @@ def scrape_all_teams():
         })
 
     df = pd.DataFrame(all_teams)
-    df.to_csv('cached_all_teams.csv', index=False)
+    df.to_csv('backend/cached_all_teams.csv', index=False)
 
-    with open('cached_all_teams.json', 'w') as f:
+    with open('backend/cached_all_teams.json', 'w') as f:
         json.dump(all_teams, f)
 
     print(f"Cached {len(all_teams)} teams")
@@ -347,13 +347,13 @@ def scrape_active_players_from_rosters(season=2026):
 
     # Save player info
     df_info = pd.DataFrame(player_info_list)
-    df_info.to_csv('cached_player_info.csv', index=False)
+    df_info.to_csv('backend/cached_player_info.csv', index=False)
 
     # Save active players list
     df_players = pd.DataFrame(active_players)
-    df_players.to_csv('cached_all_players.csv', index=False)
+    df_players.to_csv('backend/cached_all_players.csv', index=False)
 
-    with open('cached_all_players.json', 'w') as f:
+    with open('backend/cached_all_players.json', 'w') as f:
         json.dump(active_players, f)
 
     print(f"Cached {len(active_players)} active players from team rosters")
@@ -398,7 +398,7 @@ def scrape_player_gamelogs(player_list, player_info_list, season=2026, last_n_da
 
     if all_gamelogs:
         combined_df = pd.concat(all_gamelogs, ignore_index=True)
-        combined_df.to_csv('cached_player_gamelogs.csv', index=False)
+        combined_df.to_csv('backend/cached_player_gamelogs.csv', index=False)
         print(f"Cached game logs for {len(all_gamelogs)} players")
 
     return all_gamelogs
@@ -414,8 +414,8 @@ def scrape_todays_games(season=2025):
 
         if not all_games:
             print("No schedule data found")
-            pd.DataFrame().to_csv('cached_todays_games.csv', index=False)
-            with open('cached_todays_games.json', 'w') as f:
+            pd.DataFrame().to_csv('backend/cached_todays_games.csv', index=False)
+            with open('backend/cached_todays_games.json', 'w') as f:
                 json.dump([], f)
             return
 
@@ -431,18 +431,18 @@ def scrape_todays_games(season=2025):
 
         if not todays_games.empty:
             todays_games = todays_games.drop('date_parsed', axis=1)
-            todays_games.to_csv('cached_todays_games.csv', index=False)
+            todays_games.to_csv('backend/cached_todays_games.csv', index=False)
 
             games_list = todays_games.to_dict('records')
-            with open('cached_todays_games.json', 'w') as f:
+            with open('backend/cached_todays_games.json', 'w') as f:
                 json.dump(games_list, f, default=str)
 
             print(f"Cached {len(todays_games)} games for {today}")
         else:
             print("No games today")
             # Create empty files
-            pd.DataFrame().to_csv('cached_todays_games.csv', index=False)
-            with open('cached_todays_games.json', 'w') as f:
+            pd.DataFrame().to_csv('backend/cached_todays_games.csv', index=False)
+            with open('backend/cached_todays_games.json', 'w') as f:
                 json.dump([], f)
 
     except Exception as e:
@@ -450,8 +450,8 @@ def scrape_todays_games(season=2025):
         import traceback
         traceback.print_exc()
         # Create empty files on error
-        pd.DataFrame().to_csv('cached_todays_games.csv', index=False)
-        with open('cached_todays_games.json', 'w') as f:
+        pd.DataFrame().to_csv('backend/cached_todays_games.csv', index=False)
+        with open('backend/cached_todays_games.json', 'w') as f:
             json.dump([], f)
 
 def main():
