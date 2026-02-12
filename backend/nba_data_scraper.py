@@ -463,6 +463,20 @@ def scrape_todays_games(current_dir, season=2025):
         with open(json_path, 'w') as f:
             json.dump([], f)
 
+def load_cached_players(current_dir):
+    """Load active_players and player_info_list from cached CSV files"""
+    players_csv = os.path.join(current_dir, 'cached_all_players.csv')
+    player_info_csv = os.path.join(current_dir, 'cached_player_info.csv')
+
+    df_players = pd.read_csv(players_csv)
+    active_players = df_players.to_dict('records')
+
+    df_info = pd.read_csv(player_info_csv)
+    player_info_list = df_info.to_dict('records')
+
+    print(f"Loaded {len(active_players)} active players from cache")
+    return active_players, player_info_list
+
 def main():
     """Main scraping workflow"""
     print("="*60)
@@ -476,11 +490,12 @@ def main():
     start_time = time.time()
     current_season = 2026  # Update this for the current season
 
-    # 1. Scrape teams
-    all_teams = scrape_all_teams(current_dir)
+    # 1. Scrape teams (commented out since teams won't be changing)
+    # all_teams = scrape_all_teams(current_dir)
 
-    # 2. Get active players from team rosters
-    active_players, player_info_list = scrape_active_players_from_rosters(current_dir, season=current_season)
+    # 2. Load active players from cached files (roster scraping commented out since rosters won't change soon)
+    # active_players, player_info_list = scrape_active_players_from_rosters(current_dir, season=current_season)
+    active_players, player_info_list = load_cached_players(current_dir)
 
     # 3. Scrape game logs for active players (last 30 days)
     scrape_player_gamelogs(current_dir, active_players, player_info_list, season=current_season, last_n_days=30)
@@ -492,7 +507,6 @@ def main():
     metadata = {
         'last_updated': datetime.now().isoformat(),
         'active_players': len(active_players),
-        'total_teams': len(all_teams),
         'season': current_season,
         'source': 'Basketball Reference (Direct Scraping)'
     }
