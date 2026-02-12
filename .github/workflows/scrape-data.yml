@@ -66,7 +66,12 @@ jobs:
         python nba_defense_scraper.py
       env:
         WDM_LOG: '0'
-        
+
+    - name: Run NBA data scraper
+      run: |
+        cd backend
+        python nba_data_scraper.py
+
     - name: Commit and push if changed
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
