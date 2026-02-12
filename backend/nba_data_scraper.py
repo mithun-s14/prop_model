@@ -274,7 +274,7 @@ def scrape_player_gamelog(player_id, player_name, season=2026):
         print(f"    Error scraping gamelog for {player_name}: {e}")
         return None
 
-def scrape_all_teams():
+def scrape_all_teams(current_dir):
     """Cache all NBA teams"""
     print("Fetching all NBA teams...")
 
@@ -288,15 +288,17 @@ def scrape_all_teams():
         })
 
     df = pd.DataFrame(all_teams)
-    df.to_csv('backend/cached_all_teams.csv', index=False)
+    csv_path = os.path.join(current_dir, 'cached_all_teams.csv')
+    df.to_csv(csv_path, index=False)
 
-    with open('backend/cached_all_teams.json', 'w') as f:
+    json_path = os.path.join(current_dir, 'cached_all_teams.json')
+    with open(json_path, 'w') as f:
         json.dump(all_teams, f)
 
     print(f"Cached {len(all_teams)} teams")
     return all_teams
 
-def scrape_active_players_from_rosters(season=2026):
+def scrape_active_players_from_rosters(current_dir, season=2026):
     """Get active players by scraping team rosters from Basketball Reference"""
     print("Scraping active players from team rosters...")
 
@@ -347,20 +349,23 @@ def scrape_active_players_from_rosters(season=2026):
 
     # Save player info
     df_info = pd.DataFrame(player_info_list)
-    df_info.to_csv('backend/cached_player_info.csv', index=False)
+    player_info_path = os.path.join(current_dir, 'cached_player_info.csv')
+    df_info.to_csv(player_info_path, index=False)
 
     # Save active players list
     df_players = pd.DataFrame(active_players)
-    df_players.to_csv('backend/cached_all_players.csv', index=False)
+    players_csv_path = os.path.join(current_dir, 'cached_all_players.csv')
+    df_players.to_csv(players_csv_path, index=False)
 
-    with open('backend/cached_all_players.json', 'w') as f:
+    players_json_path = os.path.join(current_dir, 'cached_all_players.json')
+    with open(players_json_path, 'w') as f:
         json.dump(active_players, f)
 
     print(f"Cached {len(active_players)} active players from team rosters")
 
     return active_players, player_info_list
 
-def scrape_player_gamelogs(player_list, player_info_list, season=2026, last_n_days=30):
+def scrape_player_gamelogs(current_dir, player_list, player_info_list, season=2026, last_n_days=30):
     """Cache recent game logs for all active players"""
     print(f"Scraping recent game logs (season {season})...")
     all_gamelogs = []
@@ -398,15 +403,19 @@ def scrape_player_gamelogs(player_list, player_info_list, season=2026, last_n_da
 
     if all_gamelogs:
         combined_df = pd.concat(all_gamelogs, ignore_index=True)
-        combined_df.to_csv('backend/cached_player_gamelogs.csv', index=False)
+        gamelogs_path = os.path.join(current_dir, 'cached_player_gamelogs.csv')
+        combined_df.to_csv(gamelogs_path, index=False)
         print(f"Cached game logs for {len(all_gamelogs)} players")
 
     return all_gamelogs
 
-def scrape_todays_games(season=2025):
+def scrape_todays_games(current_dir, season=2025):
     """Cache today's NBA schedule"""
     print("Scraping today's games...")
     today = datetime.now().strftime("%Y-%m-%d")
+
+    csv_path = os.path.join(current_dir, 'cached_todays_games.csv')
+    json_path = os.path.join(current_dir, 'cached_todays_games.json')
 
     try:
         # Get full season schedule
@@ -414,8 +423,8 @@ def scrape_todays_games(season=2025):
 
         if not all_games:
             print("No schedule data found")
-            pd.DataFrame().to_csv('backend/cached_todays_games.csv', index=False)
-            with open('backend/cached_todays_games.json', 'w') as f:
+            pd.DataFrame().to_csv(csv_path, index=False)
+            with open(json_path, 'w') as f:
                 json.dump([], f)
             return
 
@@ -431,18 +440,18 @@ def scrape_todays_games(season=2025):
 
         if not todays_games.empty:
             todays_games = todays_games.drop('date_parsed', axis=1)
-            todays_games.to_csv('backend/cached_todays_games.csv', index=False)
+            todays_games.to_csv(csv_path, index=False)
 
             games_list = todays_games.to_dict('records')
-            with open('backend/cached_todays_games.json', 'w') as f:
+            with open(json_path, 'w') as f:
                 json.dump(games_list, f, default=str)
 
             print(f"Cached {len(todays_games)} games for {today}")
         else:
             print("No games today")
             # Create empty files
-            pd.DataFrame().to_csv('backend/cached_todays_games.csv', index=False)
-            with open('backend/cached_todays_games.json', 'w') as f:
+            pd.DataFrame().to_csv(csv_path, index=False)
+            with open(json_path, 'w') as f:
                 json.dump([], f)
 
     except Exception as e:
@@ -450,8 +459,8 @@ def scrape_todays_games(season=2025):
         import traceback
         traceback.print_exc()
         # Create empty files on error
-        pd.DataFrame().to_csv('backend/cached_todays_games.csv', index=False)
-        with open('backend/cached_todays_games.json', 'w') as f:
+        pd.DataFrame().to_csv(csv_path, index=False)
+        with open(json_path, 'w') as f:
             json.dump([], f)
 
 def main():
@@ -460,20 +469,24 @@ def main():
     print("NBA DATA SCRAPER - Basketball Reference (Direct Scraping)")
     print("="*60)
 
+    # Get the directory where this script is located
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    print(f"Saving files to: {current_dir}")
+
     start_time = time.time()
     current_season = 2026  # Update this for the current season
 
     # 1. Scrape teams
-    all_teams = scrape_all_teams()
+    all_teams = scrape_all_teams(current_dir)
 
     # 2. Get active players from team rosters
-    active_players, player_info_list = scrape_active_players_from_rosters(season=current_season)
+    active_players, player_info_list = scrape_active_players_from_rosters(current_dir, season=current_season)
 
     # 3. Scrape game logs for active players (last 30 days)
-    scrape_player_gamelogs(active_players, player_info_list, season=current_season, last_n_days=30)
+    scrape_player_gamelogs(current_dir, active_players, player_info_list, season=current_season, last_n_days=30)
 
     # 4. Scrape today's games
-    scrape_todays_games(season=2025)  # 2025-26 season
+    scrape_todays_games(current_dir, season=2025)  # 2025-26 season
 
     # 5. Create metadata file
     metadata = {
@@ -484,7 +497,8 @@ def main():
         'source': 'Basketball Reference (Direct Scraping)'
     }
 
-    with open('cache_metadata.json', 'w') as f:
+    metadata_path = os.path.join(current_dir, 'cache_metadata.json')
+    with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
 
     elapsed = time.time() - start_time
