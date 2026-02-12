@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(pip install:*)",
-      "Bash(ls:*)",
-      "Bash(python:*)"
-    ]
-  }
-}
