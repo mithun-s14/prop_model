@@ -12,6 +12,42 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
+# --- Anti-bot bypass: cloudscraper first, curl_cffi fallback, then plain requests ---
+_scraper_session = None
+
+def _get_session():
+    """Create a session that can bypass Cloudflare/bot protection.
+    Tries cloudscraper first, then curl_cffi, then falls back to plain requests."""
+    global _scraper_session
+    if _scraper_session is not None:
+        return _scraper_session
+
+    # Attempt 1: cloudscraper (handles Cloudflare JS challenges)
+    try:
+        import cloudscraper
+        _scraper_session = cloudscraper.create_scraper(
+            browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False}
+        )
+        print("[Session] Using cloudscraper")
+        return _scraper_session
+    except ImportError:
+        print("[Session] cloudscraper not installed, trying curl_cffi...")
+
+    # Attempt 2: curl_cffi (impersonates real browser TLS fingerprint)
+    try:
+        from curl_cffi.requests import Session
+        _scraper_session = Session(impersonate="chrome")
+        print("[Session] Using curl_cffi")
+        return _scraper_session
+    except ImportError:
+        print("[Session] curl_cffi not installed, falling back to plain requests")
+
+    # Attempt 3: plain requests (will likely get 403 from datacenter IPs)
+    _scraper_session = requests.Session()
+    _scraper_session.headers.update(HEADERS)
+    print("[Session] Using plain requests (may get blocked)")
+    return _scraper_session
+
 # NBA team abbreviations for Basketball Reference
 NBA_TEAMS = [
     'ATL', 'BOS', 'BRK', 'CHO', 'CHI', 'CLE', 'DAL', 'DEN', 'DET', 'GSW',
@@ -58,17 +94,21 @@ HEADERS = {
 }
 
 def safe_request(url, max_retries=3):
-    """Make a safe HTTP request with retry logic and rate limiting"""
+    """Make a safe HTTP request with retry logic and rate limiting.
+    Uses cloudscraper/curl_cffi to bypass bot protection."""
+    session = _get_session()
     for attempt in range(max_retries):
         try:
-            response = requests.get(url, headers=HEADERS, timeout=30)
+            response = session.get(url, headers=HEADERS, timeout=30)
             response.raise_for_status()
             time.sleep(3.5)  # Rate limiting - Basketball Reference: 20 req/min
             return response
         except Exception as e:
             print(f"  Attempt {attempt + 1} failed: {e}")
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)  # Exponential backoff
+                wait = 5 * (attempt + 1)  # Longer backoff: 5s, 10s
+                print(f"  Retrying in {wait}s...")
+                time.sleep(wait)
             else:
                 raise
     return None
