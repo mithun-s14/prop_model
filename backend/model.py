@@ -296,15 +296,44 @@ def get_all_players_cached():
 
 def get_player_position(player_name):
     """
-    Retrieves players specific position from CSV file scraped from Basketball Reference
+    Retrieves player's specific position from CSV file scraped from Basketball Reference.
+    Falls back to cached_player_info.csv if player not found.
     """
     player_positions = {}
-    with open("backend/players_positions.csv", "r", encoding="utf-8") as f:
-        reader = csv.reader(f)
-        for row in reader:
-            name, position = row
-            player_positions[name] = position
-    return player_positions[player_name]
+    try:
+        with open("backend/players_positions.csv", "r", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            next(reader, None)  # Skip header row (Player,Position)
+            for row in reader:
+                if len(row) >= 2:
+                    name, position = row[0], row[1]
+                    player_positions[name] = position
+    except FileNotFoundError:
+        pass
+
+    if player_name in player_positions:
+        return player_positions[player_name]
+
+    # Fallback: get position from cached_player_info.csv (BBRef roster data)
+    try:
+        player_info_df = pd.read_csv('backend/cached_player_info.csv')
+        match = player_info_df[player_info_df['player_name'].str.upper() == player_name.upper().strip()]
+        if match.empty:
+            # Try partial match
+            last_name = player_name.strip().split()[-1]
+            match = player_info_df[player_info_df['player_name'].str.upper().str.contains(last_name.upper(), na=False)]
+        if not match.empty:
+            pos = str(match.iloc[0]['position'])
+            # BBRef positions may be multi-position like "SG-SF"; take primary
+            primary_pos = pos.split('-')[0].strip() if pos else 'SG'
+            # Map BBRef position labels to standard abbreviations used by defense data
+            pos_map = {'G': 'SG', 'F': 'SF', 'C': 'C', 'GF': 'SG', 'FG': 'SF', 'FC': 'PF', 'CF': 'C'}
+            return pos_map.get(primary_pos, primary_pos)
+    except Exception:
+        pass
+
+    print(f"Warning: Could not find position for {player_name}, defaulting to SG")
+    return 'SG'
 
 def calculate_usage_rate(player_name):
     """
@@ -379,25 +408,38 @@ def load_latest_usage_data():
     
 def fetch_recent_gamelog(player_id, team_abbr, retries=1):
     """
-    Fetch recent game logs from cached data instead of live API
+    Fetch recent game logs from cached data instead of live API.
+    Handles both BBRef string IDs and nba_api numeric IDs.
     """
     try:
         print(f"Loading game logs from cache for player {player_id}...")
-        
+
         # Load cached game logs
         gamelogs_df = pd.read_csv('backend/cached_player_gamelogs.csv')
-        
-        # Filter for this player (string comparison for BBRef player IDs)
+
+        # Try matching by Player_ID first (works if both are same format)
         player_logs = gamelogs_df[gamelogs_df['Player_ID'].astype(str) == str(player_id)]
-        
+
+        # Fallback: match by PLAYER_NAME if Player_ID format differs (BBRef vs nba_api)
+        if player_logs.empty and 'PLAYER_NAME' in gamelogs_df.columns:
+            try:
+                player_info_df = pd.read_csv('backend/cached_player_info.csv')
+                player_row = player_info_df[player_info_df['player_id'].astype(str) == str(player_id)]
+                if not player_row.empty:
+                    player_name = player_row.iloc[0]['player_name']
+                    player_logs = gamelogs_df[gamelogs_df['PLAYER_NAME'] == player_name]
+                    if not player_logs.empty:
+                        print(f"Matched by PLAYER_NAME: {player_name}")
+            except Exception:
+                pass
+
         if not player_logs.empty:
             print(f"Found {len(player_logs)} cached games")
             return player_logs
         else:
             print(f"No cached games found for player {player_id}")
-            # Fallback to season averages
             return get_player_season_averages(player_id)
-            
+
     except FileNotFoundError:
         print("Game log cache file not found, using season averages...")
         return get_player_season_averages(player_id)
@@ -424,6 +466,7 @@ def get_player_season_averages(player_id):
                 if not player_row.empty:
                     # Create a fake gamelog with season averages
                     avg_stats = pd.DataFrame({
+                        'GAME_DATE': [datetime.now().strftime("%Y-%m-%d")],
                         'PTS': [player_row['PTS'].values[0] if 'PTS' in player_row else 0],
                         'REB': [player_row['REB'].values[0] if 'REB' in player_row else 0],
                         'AST': [player_row['AST'].values[0] if 'AST' in player_row else 0],
@@ -448,8 +491,11 @@ def get_player_season_averages(player_id):
 def calculate_rolling_features(gamelog_df, window=5):
     if gamelog_df.empty:
         return {}
-    
-    df_sorted = gamelog_df.sort_values('GAME_DATE').reset_index(drop=True)
+
+    if 'GAME_DATE' in gamelog_df.columns:
+        df_sorted = gamelog_df.sort_values('GAME_DATE').reset_index(drop=True)
+    else:
+        df_sorted = gamelog_df.reset_index(drop=True)
     
     numeric_columns = ['PTS', 'REB', 'AST', 'MIN', 'FGA', 'FG3A', 'FTA', 'STL', 'BLK', 'TOV', 'USAGE_RATE']
     available_columns = [col for col in numeric_columns if col in df_sorted.columns]
@@ -522,7 +568,7 @@ def get_team_schedule(team_id):
             home_team_id = game_info.get("HOME_TEAM_ID", None)
             visitor_team_id = game_info.get("VISITOR_TEAM_ID", None)
 
-            # If IDs are missing, derive from team names
+            # If IDs are missing/NaN, derive from team names
             if pd.isna(home_team_id) or pd.isna(visitor_team_id):
                 teams_df = pd.read_csv('backend/cached_all_teams.csv')
                 name_to_id = dict(zip(teams_df['full_name'], teams_df['id']))
@@ -531,9 +577,16 @@ def get_team_schedule(team_id):
                 if pd.isna(visitor_team_id):
                     visitor_team_id = name_to_id.get(game_info.get('visitor_team'), 0)
 
+            # Handle NaN GAME_ID (BBRef has null game_id for future games)
+            game_id = game_info.get("GAME_ID", None)
+            if pd.isna(game_id):
+                game_id = game_info.get("game_id", None)
+            if pd.isna(game_id):
+                game_id = ""
+
             return {
                 "GAME_DATE": today,
-                "GAME_ID": game_info.get("GAME_ID", game_info.get("game_id", "")),
+                "GAME_ID": game_id,
                 "HOME_TEAM_ID": int(home_team_id),
                 "VISITOR_TEAM_ID": int(visitor_team_id)
             }
@@ -963,7 +1016,7 @@ def print_prediction_results(result):
 
 # Main execution
 if __name__ == "__main__":
-    player_to_predict = "Josh Giddey"
+    player_to_predict = "LeBron James"
     spread = -3.5
     total = 235.5
 

@@ -566,7 +566,7 @@ def main():
     active_players, player_info_list = load_cached_players(current_dir)
 
     # 3. Scrape game logs for active players (last 30 days)
-    scrape_player_gamelogs(current_dir, active_players, player_info_list, season=current_season, last_n_days=30)
+    # scrape_player_gamelogs(current_dir, active_players, player_info_list, season=current_season, last_n_days=30)
 
     # 4. Scrape today's games
     scrape_todays_games(current_dir, season=2025)  # 2025-26 season
