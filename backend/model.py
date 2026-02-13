@@ -15,8 +15,6 @@ import lightgbm as lgb
 import pickle
 from datetime import datetime, timedelta
 import warnings
-from nba_api.stats.static import teams, players
-from nba_api.stats.endpoints import commonteamroster, playergamelog, commonplayerinfo,teamgamelog, scoreboardv2
 
 # import nba_usage_rate_scraper
 warnings.filterwarnings('ignore')
@@ -246,7 +244,7 @@ def get_player_info(player_name):
         if not exact_match.empty:
             row = exact_match.iloc[0]
             return {
-                'id': int(row['player_id']),
+                'id': str(row['player_id']),
                 'team': row['team_abbreviation'],
                 'team_name': row['team_name'],
                 'position': row['position']
@@ -258,7 +256,7 @@ def get_player_info(player_name):
             row = partial_match.iloc[0]
             print(f"Found partial match: {row['player_name']}")
             return {
-                'id': int(row['player_id']),
+                'id': str(row['player_id']),
                 'team': row['team_abbreviation'],
                 'team_name': row['team_name'],
                 'position': row['position']
@@ -271,7 +269,7 @@ def get_player_info(player_name):
             row = last_name_match.iloc[0]
             print(f"Found last name match: {row['player_name']}")
             return {
-                'id': int(row['player_id']),
+                'id': str(row['player_id']),
                 'team': row['team_abbreviation'],
                 'team_name': row['team_name'],
                 'position': row['position']
@@ -389,8 +387,8 @@ def fetch_recent_gamelog(player_id, team_abbr, retries=1):
         # Load cached game logs
         gamelogs_df = pd.read_csv('backend/cached_player_gamelogs.csv')
         
-        # Filter for this player
-        player_logs = gamelogs_df[gamelogs_df['Player_ID'] == player_id]
+        # Filter for this player (string comparison for BBRef player IDs)
+        player_logs = gamelogs_df[gamelogs_df['Player_ID'].astype(str) == str(player_id)]
         
         if not player_logs.empty:
             print(f"Found {len(player_logs)} cached games")
@@ -467,38 +465,13 @@ def calculate_rolling_features(gamelog_df, window=5):
         features[feature_name] = rolling_avg[col].iloc[-1] if len(rolling_avg) > 0 else 0
     
     return features
-# Getting team context
-def get_player_info(player_name):
-    
-    player = players.find_players_by_full_name(player_name)
-    if not player:
-        return None
-    
-    player_id = player[0]['id']
-    try:
-        info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
-        data = info.common_player_info.get_dict()['data'][0]
-        return {
-            'id': player_id,
-            'team': data[20] if len(data) > 20 else 'UNK',   # TEAM_ABBREVIATION
-            'team_name': data[18] if len(data) > 18 else 'Unknown',  # TEAM_NAME (full)
-            'position': data[15] if len(data) > 15 else 'Unknown',
-        }
-    except:
-        return {
-            'id': player_id,
-            'team': 'UNK',
-            'team_name': 'Unknown',
-            'position': 'Unknown'
-        }
-
 def get_player_team_id(player_id):
     """
     Get team ID for a player from cached data
     """
     try:
         player_info_df = pd.read_csv('backend/cached_player_info.csv')
-        player_row = player_info_df[player_info_df['player_id'] == player_id]
+        player_row = player_info_df[player_info_df['player_id'].astype(str) == str(player_id)]
         
         if not player_row.empty:
             team_id = int(player_row.iloc[0]['team_id'])
@@ -516,25 +489,58 @@ def get_team_schedule(team_id):
     """
     try:
         today = datetime.now().strftime("%Y-%m-%d")
-        
+
         # Load cached games
         games_df = pd.read_csv('backend/cached_todays_games.csv')
-        
-        # Check if team_id appears as either home or visitor
-        game = games_df[(games_df["HOME_TEAM_ID"] == team_id) | (games_df["VISITOR_TEAM_ID"] == team_id)]
-        
+
+        if games_df.empty:
+            print(f"No games scheduled for today")
+            return None
+
+        # Primary: match by numeric team ID columns
+        game = pd.DataFrame()
+        if 'HOME_TEAM_ID' in games_df.columns and 'VISITOR_TEAM_ID' in games_df.columns:
+            game = games_df[(games_df["HOME_TEAM_ID"] == team_id) | (games_df["VISITOR_TEAM_ID"] == team_id)]
+
+        # Fallback: match by full team name
+        if game.empty and 'home_team' in games_df.columns and 'visitor_team' in games_df.columns:
+            try:
+                teams_df = pd.read_csv('backend/cached_all_teams.csv')
+                team_row = teams_df[teams_df['id'] == team_id]
+                if not team_row.empty:
+                    team_full_name = team_row.iloc[0]['full_name']
+                    game = games_df[
+                        (games_df['home_team'] == team_full_name) |
+                        (games_df['visitor_team'] == team_full_name)
+                    ]
+            except Exception:
+                pass
+
         if not game.empty:
             game_info = game.iloc[0]
+
+            home_team_id = game_info.get("HOME_TEAM_ID", None)
+            visitor_team_id = game_info.get("VISITOR_TEAM_ID", None)
+
+            # If IDs are missing, derive from team names
+            if pd.isna(home_team_id) or pd.isna(visitor_team_id):
+                teams_df = pd.read_csv('backend/cached_all_teams.csv')
+                name_to_id = dict(zip(teams_df['full_name'], teams_df['id']))
+                if pd.isna(home_team_id):
+                    home_team_id = name_to_id.get(game_info.get('home_team'), 0)
+                if pd.isna(visitor_team_id):
+                    visitor_team_id = name_to_id.get(game_info.get('visitor_team'), 0)
+
             return {
                 "GAME_DATE": today,
-                "GAME_ID": game_info["GAME_ID"],
-                "HOME_TEAM_ID": game_info["HOME_TEAM_ID"],
-                "VISITOR_TEAM_ID": game_info["VISITOR_TEAM_ID"]
+                "GAME_ID": game_info.get("GAME_ID", game_info.get("game_id", "")),
+                "HOME_TEAM_ID": int(home_team_id),
+                "VISITOR_TEAM_ID": int(visitor_team_id)
             }
         else:
             print(f"No scheduled game found for team {team_id} on {today}")
             return None
-            
+
     except FileNotFoundError:
         print("Today's games cache not found")
         return None
@@ -675,7 +681,7 @@ def get_opponent_defense_stats(opponent_team, player_position):
     
     # Complete NBA team abbreviation mapping
     team_mapping = {
-        # NBA API abbrev → Common abbrev
+        # NBA API abbrev → Hashtag Basketball abbrev
         'ATL': 'ATL',
         'BOS': 'BOS',
         'BKN': 'BKN',
@@ -704,6 +710,10 @@ def get_opponent_defense_stats(opponent_team, player_position):
         'SAC': 'SAC',
         'SAS': 'SA',   # San Antonio Spurs
         'TOR': 'TOR',
+        # BBRef abbreviations
+        'BRK': 'BKN',  # Brooklyn Nets
+        'CHO': 'CHA',  # Charlotte Hornets
+        'PHO': 'PHO',  # Phoenix Suns
         'UTA': 'UTA',
         'WAS': 'WAS'
     }
