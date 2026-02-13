@@ -528,7 +528,7 @@ def main():
     print(f"Saving files to: {current_dir}")
 
     start_time = time.time()
-    current_season = 2026  # Update this for the current season
+    current_season = 2026
 
     # 1. Scrape teams (commented out since teams won't be changing)
     # all_teams = scrape_all_teams(current_dir)
