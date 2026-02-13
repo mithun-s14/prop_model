@@ -277,33 +277,33 @@ def scrape_player_gamelog(player_id, player_name, season=2026):
             if len(cols) < 10:
                 continue
 
-            # Extract game stats
+            # Extract game stats (column names match nba_api format for compatibility)
             game_data = {
-                'player_name': player_name,
-                'date': row.find('td', {'data-stat': 'date_game'}).text.strip() if row.find('td', {'data-stat': 'date_game'}) else '',
-                'age': row.find('td', {'data-stat': 'age'}).text.strip() if row.find('td', {'data-stat': 'age'}) else '',
+                'PLAYER_NAME': player_name,
+                'Player_ID': player_id,
+                'GAME_DATE': row.find('td', {'data-stat': 'date_game'}).text.strip() if row.find('td', {'data-stat': 'date_game'}) else '',
                 'team': row.find('td', {'data-stat': 'team_id'}).text.strip() if row.find('td', {'data-stat': 'team_id'}) else '',
                 'opponent': row.find('td', {'data-stat': 'opp_id'}).text.strip() if row.find('td', {'data-stat': 'opp_id'}) else '',
                 'game_result': row.find('td', {'data-stat': 'game_result'}).text.strip() if row.find('td', {'data-stat': 'game_result'}) else '',
-                'mp': row.find('td', {'data-stat': 'mp'}).text.strip() if row.find('td', {'data-stat': 'mp'}) else '',
-                'fg': row.find('td', {'data-stat': 'fg'}).text.strip() if row.find('td', {'data-stat': 'fg'}) else '',
-                'fga': row.find('td', {'data-stat': 'fga'}).text.strip() if row.find('td', {'data-stat': 'fga'}) else '',
-                'fg_pct': row.find('td', {'data-stat': 'fg_pct'}).text.strip() if row.find('td', {'data-stat': 'fg_pct'}) else '',
-                'fg3': row.find('td', {'data-stat': 'fg3'}).text.strip() if row.find('td', {'data-stat': 'fg3'}) else '',
-                'fg3a': row.find('td', {'data-stat': 'fg3a'}).text.strip() if row.find('td', {'data-stat': 'fg3a'}) else '',
-                'fg3_pct': row.find('td', {'data-stat': 'fg3_pct'}).text.strip() if row.find('td', {'data-stat': 'fg3_pct'}) else '',
-                'ft': row.find('td', {'data-stat': 'ft'}).text.strip() if row.find('td', {'data-stat': 'ft'}) else '',
-                'fta': row.find('td', {'data-stat': 'fta'}).text.strip() if row.find('td', {'data-stat': 'fta'}) else '',
-                'ft_pct': row.find('td', {'data-stat': 'ft_pct'}).text.strip() if row.find('td', {'data-stat': 'ft_pct'}) else '',
-                'orb': row.find('td', {'data-stat': 'orb'}).text.strip() if row.find('td', {'data-stat': 'orb'}) else '',
-                'drb': row.find('td', {'data-stat': 'drb'}).text.strip() if row.find('td', {'data-stat': 'drb'}) else '',
-                'trb': row.find('td', {'data-stat': 'trb'}).text.strip() if row.find('td', {'data-stat': 'trb'}) else '',
-                'ast': row.find('td', {'data-stat': 'ast'}).text.strip() if row.find('td', {'data-stat': 'ast'}) else '',
-                'stl': row.find('td', {'data-stat': 'stl'}).text.strip() if row.find('td', {'data-stat': 'stl'}) else '',
-                'blk': row.find('td', {'data-stat': 'blk'}).text.strip() if row.find('td', {'data-stat': 'blk'}) else '',
-                'tov': row.find('td', {'data-stat': 'tov'}).text.strip() if row.find('td', {'data-stat': 'tov'}) else '',
-                'pf': row.find('td', {'data-stat': 'pf'}).text.strip() if row.find('td', {'data-stat': 'pf'}) else '',
-                'pts': row.find('td', {'data-stat': 'pts'}).text.strip() if row.find('td', {'data-stat': 'pts'}) else '',
+                'MIN': row.find('td', {'data-stat': 'mp'}).text.strip() if row.find('td', {'data-stat': 'mp'}) else '',
+                'FGM': row.find('td', {'data-stat': 'fg'}).text.strip() if row.find('td', {'data-stat': 'fg'}) else '',
+                'FGA': row.find('td', {'data-stat': 'fga'}).text.strip() if row.find('td', {'data-stat': 'fga'}) else '',
+                'FG_PCT': row.find('td', {'data-stat': 'fg_pct'}).text.strip() if row.find('td', {'data-stat': 'fg_pct'}) else '',
+                'FG3M': row.find('td', {'data-stat': 'fg3'}).text.strip() if row.find('td', {'data-stat': 'fg3'}) else '',
+                'FG3A': row.find('td', {'data-stat': 'fg3a'}).text.strip() if row.find('td', {'data-stat': 'fg3a'}) else '',
+                'FG3_PCT': row.find('td', {'data-stat': 'fg3_pct'}).text.strip() if row.find('td', {'data-stat': 'fg3_pct'}) else '',
+                'FTM': row.find('td', {'data-stat': 'ft'}).text.strip() if row.find('td', {'data-stat': 'ft'}) else '',
+                'FTA': row.find('td', {'data-stat': 'fta'}).text.strip() if row.find('td', {'data-stat': 'fta'}) else '',
+                'FT_PCT': row.find('td', {'data-stat': 'ft_pct'}).text.strip() if row.find('td', {'data-stat': 'ft_pct'}) else '',
+                'OREB': row.find('td', {'data-stat': 'orb'}).text.strip() if row.find('td', {'data-stat': 'orb'}) else '',
+                'DREB': row.find('td', {'data-stat': 'drb'}).text.strip() if row.find('td', {'data-stat': 'drb'}) else '',
+                'REB': row.find('td', {'data-stat': 'trb'}).text.strip() if row.find('td', {'data-stat': 'trb'}) else '',
+                'AST': row.find('td', {'data-stat': 'ast'}).text.strip() if row.find('td', {'data-stat': 'ast'}) else '',
+                'STL': row.find('td', {'data-stat': 'stl'}).text.strip() if row.find('td', {'data-stat': 'stl'}) else '',
+                'BLK': row.find('td', {'data-stat': 'blk'}).text.strip() if row.find('td', {'data-stat': 'blk'}) else '',
+                'TOV': row.find('td', {'data-stat': 'tov'}).text.strip() if row.find('td', {'data-stat': 'tov'}) else '',
+                'PF': row.find('td', {'data-stat': 'pf'}).text.strip() if row.find('td', {'data-stat': 'pf'}) else '',
+                'PTS': row.find('td', {'data-stat': 'pts'}).text.strip() if row.find('td', {'data-stat': 'pts'}) else '',
                 'game_score': row.find('td', {'data-stat': 'game_score'}).text.strip() if row.find('td', {'data-stat': 'game_score'}) else '',
             }
             games.append(game_data)
@@ -443,6 +443,26 @@ def scrape_player_gamelogs(current_dir, player_list, player_info_list, season=20
 
     if all_gamelogs:
         combined_df = pd.concat(all_gamelogs, ignore_index=True)
+
+        # Convert MIN from "MM:SS" string to numeric minutes
+        if 'MIN' in combined_df.columns:
+            def convert_minutes(val):
+                try:
+                    if isinstance(val, str) and ':' in val:
+                        parts = val.split(':')
+                        return round(float(parts[0]) + float(parts[1]) / 60, 1)
+                    return float(val)
+                except (ValueError, TypeError):
+                    return 0.0
+            combined_df['MIN'] = combined_df['MIN'].apply(convert_minutes)
+
+        # Ensure all stat columns are numeric
+        numeric_cols = ['FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA', 'FT_PCT',
+                        'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'game_score']
+        for col in numeric_cols:
+            if col in combined_df.columns:
+                combined_df[col] = pd.to_numeric(combined_df[col], errors='coerce').fillna(0)
+
         gamelogs_path = os.path.join(current_dir, 'cached_player_gamelogs.csv')
         combined_df.to_csv(gamelogs_path, index=False)
         print(f"Cached game logs for {len(all_gamelogs)} players")
@@ -480,6 +500,14 @@ def scrape_todays_games(current_dir, season=2025):
 
         if not todays_games.empty:
             todays_games = todays_games.drop('date_parsed', axis=1)
+
+            # Add numeric team ID columns for model.py compatibility
+            name_to_id = {info['full_name']: info['id'] for info in NBA_TEAM_INFO.values()}
+            todays_games = todays_games.copy()
+            todays_games['HOME_TEAM_ID'] = todays_games['home_team'].map(name_to_id)
+            todays_games['VISITOR_TEAM_ID'] = todays_games['visitor_team'].map(name_to_id)
+            todays_games['GAME_ID'] = todays_games['game_id']
+
             todays_games.to_csv(csv_path, index=False)
 
             games_list = todays_games.to_dict('records')
