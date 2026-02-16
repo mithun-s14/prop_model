@@ -1,7 +1,7 @@
 import os
 import csv
 from time import time
-from flask import json
+import json
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
