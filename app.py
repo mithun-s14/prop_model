@@ -220,7 +220,7 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Base(
 
     gr.HTML("""
     <div class="main-header">
-        <h1>📊 Prop Model</h1>
+        <h1>📊 NBA Predictive Analytics Platform</h1>
         <p>Predicting players' stats with ensemble models: Bayesian, Gradient Boost, LightGBM, Linear, Random Forest, and XGBoost</p>
     </div>
     """)
@@ -228,22 +228,22 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Base(
     with gr.Group(elem_classes="input-card"):
         with gr.Row():
             player_input = gr.Textbox(
-                label="👤 Player Name",
+                label="Player Name",
                 placeholder="e.g., LeBron James",
             )
             stat_input = gr.Dropdown(
-                label="🎯 Target Stat",
+                label="Target Stat",
                 choices=["Points", "Assists", "Rebounds"],
                 value="Points"
             )
         with gr.Row():
             spread_input = gr.Number(
-                label="📊 Spread",
+                label="Spread",
                 value=-5.5,
                 step=0.5
             )
             total_input = gr.Number(
-                label="📈 Total",
+                label="Total",
                 value=225.5,
                 step=0.5
             )
