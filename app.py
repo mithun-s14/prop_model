@@ -16,7 +16,7 @@ def predict_player_stats(player_name, target_stat, spread, total):
     try:
         # Validate inputs
         if not player_name or not player_name.strip():
-            return "❌ Please enter a player name"
+            return "Please enter a player name"
         
         # Call your existing model
         result = create_complete_prediction(
@@ -27,7 +27,7 @@ def predict_player_stats(player_name, target_stat, spread, total):
         )
         
         if result is None:
-            return f"❌ Prediction failed for {player_name}. Player may not be found or insufficient data available."
+            return f"Prediction failed for {player_name}. Player may not be found or insufficient data available."
         
         # Format the output
         prediction = result.get('prediction', 0)
@@ -60,17 +60,21 @@ def predict_player_stats(player_name, target_stat, spread, total):
         
         return output
         
+    except TypeError as e:
+        if "'NoneType' object is not subscriptable" in str(e):
+            return f"Prediction unavailable: **{player_name.strip()}** does not have a game today."
+        import traceback
+        return f"Error: {str(e)}\n\nDetails:\n{traceback.format_exc()}"
     except Exception as e:
         import traceback
-        error_details = traceback.format_exc()
-        return f"❌ Error: {str(e)}\n\nDetails:\n{error_details}"
+        return f"Error: {str(e)}\n\nDetails:\n{traceback.format_exc()}"
 
 # Create Gradio interface with dark theme
 with gr.Blocks(theme=gr.themes.Soft(primary_hue="green")) as demo:
     gr.Markdown("""
-    # 🏀 NBA Player Prop Predictor
+    # 🏀 NBA Predictive Analytics Platform
     
-    Predict player statistics using ensemble machine learning models.
+    Predict player statistics for today's gamesusing ensemble machine learning models.
     
     **Powered by**: Random Forest, Gradient Boosting, XGBoost, Bayesian Ridge, Linear Regression
     """)
@@ -123,9 +127,9 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="green")) as demo:
     - Game context (home/away, spread, total)
     
     ### 📊 Data Sources
-    - NBA official stats API
     - Hashtag Basketball defensive stats
-    - Real-time usage rate data
+    - Basketball Reference for player's information and game logs
+    - Real-time usage rate data from NBA.com
     """)
 
 # Launch the app
