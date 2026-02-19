@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
 from model import create_complete_prediction
 
-STAT_MAP = {"Points": "points", "Assists": "assists", "Rebounds": "rebounds"}
+STAT_MAP = {"Points": "Points", "Assists": "Assists", "Rebounds": "Rebounds"}
 
 custom_css = """
 .gradio-container {
