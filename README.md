@@ -79,5 +79,5 @@ The app launches at `http://localhost:7860`.
 pytest
 ```
 
-### 🚀 Roadmap / To-Do
+### To-Do List
 - [ ] Allow users to enter opponent information so users can analyze players in future games
