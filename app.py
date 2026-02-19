@@ -221,7 +221,7 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Base(
     gr.HTML("""
     <div class="main-header">
         <h1>📊 NBA Predictive Analytics Platform</h1>
-        <p>Predicting players' stats with ensemble models: Bayesian, Gradient Boost, LightGBM, Linear, Random Forest, and XGBoost</p>
+        <p>Predicting players' stats for today's games with ensemble models: Bayesian, Gradient Boost, LightGBM, Linear, Random Forest, and XGBoost</p>
     </div>
     """)
 
