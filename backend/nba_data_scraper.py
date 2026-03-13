@@ -199,75 +199,81 @@ def scrape_schedule(season=2025):
     return all_games
 
 
-def scrape_player_gamelog(player_id, player_name, season=2026):
-    """Scrape player game log from Basketball Reference.
-    player_id: Basketball Reference player ID (e.g., 'curryst01')
+def scrape_boxscore(game_id, game_date):
     """
-    if not player_id:
-        return None
-
-    url = f"https://www.basketball-reference.com/players/{player_id[0]}/{player_id}/gamelog/{season}"
-
+    Scrape a single BBRef box score page and return all player stats.
+    One box score request covers all players in both teams — far fewer
+    requests than scraping individual player gamelog pages.
+    """
+    url = f"https://www.basketball-reference.com/boxscores/{game_id}.html"
     try:
         page = safe_request(url)
+        players = []
 
-        gamelog_tables = page.css('table#pgl_basic')
-        if not gamelog_tables:
-            return None
-
-        gamelog_table = gamelog_tables[0]
-        games = []
-
-        for row in gamelog_table.css('tbody tr'):
-            if 'thead' in (row.attrib.get('class') or ''):
+        for team_abbr in NBA_TEAMS:
+            table_id = f'box-{team_abbr.lower()}-game-basic'
+            tables = page.css(f'table#{table_id}')
+            if not tables:
                 continue
-            # Skip "Did Not Play" / "Inactive" rows
-            if row.css('td[data-stat="reason"]'):
-                continue
+            table = tables[0]
 
-            cols = row.css('th, td')
-            if len(cols) < 10:
-                continue
+            for row in table.css('tbody tr'):
+                row_class = row.attrib.get('class') or ''
+                if 'thead' in row_class or 'partial_table' in row_class:
+                    continue
 
-            def stat(name):
-                el = row.css(f'td[data-stat="{name}"]::text')
-                return (el.get() or '').strip()
+                player_th = row.css('th[data-stat="player"]')
+                if not player_th:
+                    continue
+                player_link = player_th[0].css('a')
+                if not player_link:
+                    continue
 
-            game_data = {
-                'PLAYER_NAME': player_name,
-                'Player_ID': player_id,
-                'GAME_DATE': stat('date_game'),
-                'team': stat('team_id'),
-                'opponent': stat('opp_id'),
-                'game_result': stat('game_result'),
-                'MIN': stat('mp'),
-                'FGM': stat('fg'),
-                'FGA': stat('fga'),
-                'FG_PCT': stat('fg_pct'),
-                'FG3M': stat('fg3'),
-                'FG3A': stat('fg3a'),
-                'FG3_PCT': stat('fg3_pct'),
-                'FTM': stat('ft'),
-                'FTA': stat('fta'),
-                'FT_PCT': stat('ft_pct'),
-                'OREB': stat('orb'),
-                'DREB': stat('drb'),
-                'REB': stat('trb'),
-                'AST': stat('ast'),
-                'STL': stat('stl'),
-                'BLK': stat('blk'),
-                'TOV': stat('tov'),
-                'PF': stat('pf'),
-                'PTS': stat('pts'),
-                'game_score': stat('game_score'),
-            }
-            games.append(game_data)
+                player_name = (player_link[0].css('::text').get() or '').strip()
+                href = player_link[0].attrib.get('href', '')
+                m = re.search(r'/players/\w/(\w+)\.html', href)
+                player_id = m.group(1) if m else None
 
-        return games
+                def stat(name):
+                    el = row.css(f'td[data-stat="{name}"]::text')
+                    return (el.get() or '').strip()
+
+                mp = stat('mp')
+                if not mp or mp in ('Did Not Play', 'Inactive', 'Did Not Dress', 'Not With Team'):
+                    continue
+
+                players.append({
+                    'PLAYER_NAME': player_name,
+                    'Player_ID': player_id,
+                    'GAME_DATE': game_date,
+                    'team': team_abbr,
+                    'game_id': game_id,
+                    'MIN': mp,
+                    'FGM': stat('fg'),
+                    'FGA': stat('fga'),
+                    'FG_PCT': stat('fg_pct'),
+                    'FG3M': stat('fg3'),
+                    'FG3A': stat('fg3a'),
+                    'FG3_PCT': stat('fg3_pct'),
+                    'FTM': stat('ft'),
+                    'FTA': stat('fta'),
+                    'FT_PCT': stat('ft_pct'),
+                    'OREB': stat('orb'),
+                    'DREB': stat('drb'),
+                    'REB': stat('trb'),
+                    'AST': stat('ast'),
+                    'STL': stat('stl'),
+                    'BLK': stat('blk'),
+                    'TOV': stat('tov'),
+                    'PF': stat('pf'),
+                    'PTS': stat('pts'),
+                })
+
+        return players
 
     except Exception as e:
-        print(f"    Error scraping gamelog for {player_name}: {e}")
-        return None
+        print(f"  Error scraping box score {game_id}: {e}")
+        return []
 
 
 def scrape_all_teams(current_dir):
@@ -353,62 +359,65 @@ def scrape_active_players_from_rosters(current_dir, season=2026):
     return active_players, player_info_list
 
 
-def scrape_player_gamelogs(current_dir, player_list, player_info_list, season=2026, last_n_days=30):
-    """Cache recent game logs for all active players"""
-    print(f"Scraping recent game logs (season {season})...")
-    all_gamelogs = []
+def scrape_gamelogs_from_boxscores(current_dir, last_n_days=30):
+    """
+    Cache recent player gamelogs by fetching BBRef box score pages.
+    Scrapes one page per game (covering all players) rather than one page
+    per player — ~150 requests instead of 500+.
+    """
+    print(f"Scraping player gamelogs from box scores (last {last_n_days} days)...")
 
     end_date = datetime.now()
     start_date = end_date - timedelta(days=last_n_days)
 
-    for i, player in enumerate(player_list):
+    # Reuse the schedule scraper to get completed game IDs
+    all_games = scrape_schedule(season=2025)
+    recent_games = []
+    for game in all_games:
+        if not game.get('game_id'):
+            continue
         try:
-            player_name = player['full_name']
-            player_id = player['id']
-
-            print(f"  {i+1}/{len(player_list)}: {player_name} ({player_id})")
-
-            games = scrape_player_gamelog(player_id, player_name, season)
-
-            if games:
-                df = pd.DataFrame(games)
-
-                if 'GAME_DATE' in df.columns and not df.empty:
-                    df['date_parsed'] = pd.to_datetime(df['GAME_DATE'], errors='coerce')
-                    df = df[df['date_parsed'] >= start_date]
-                    df = df.drop('date_parsed', axis=1)
-
-                if not df.empty:
-                    all_gamelogs.append(df)
-
-        except Exception as e:
-            print(f"    Error: {e}")
+            game_dt = datetime.strptime(game['date'], '%a, %b %d, %Y')
+            if start_date <= game_dt <= end_date:
+                recent_games.append(game)
+        except Exception:
             continue
 
-    if all_gamelogs:
-        combined_df = pd.concat(all_gamelogs, ignore_index=True)
+    print(f"Found {len(recent_games)} completed games in the last {last_n_days} days")
 
-        if 'MIN' in combined_df.columns:
-            def convert_minutes(val):
-                try:
-                    if isinstance(val, str) and ':' in val:
-                        parts = val.split(':')
-                        return round(float(parts[0]) + float(parts[1]) / 60, 1)
-                    return float(val)
-                except (ValueError, TypeError):
-                    return 0.0
-            combined_df['MIN'] = combined_df['MIN'].apply(convert_minutes)
+    all_player_stats = []
+    for i, game in enumerate(recent_games):
+        game_id = game['game_id']
+        game_date = game['date']
+        print(f"  {i+1}/{len(recent_games)}: box score {game_id} ({game_date})")
+        players = scrape_boxscore(game_id, game_date)
+        all_player_stats.extend(players)
 
-        numeric_cols = ['FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA', 'FT_PCT',
-                        'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'game_score']
-        for col in numeric_cols:
-            if col in combined_df.columns:
-                combined_df[col] = pd.to_numeric(combined_df[col], errors='coerce').fillna(0)
+    if not all_player_stats:
+        print("No player stats collected from box scores")
+        return
 
-        combined_df.to_csv(os.path.join(current_dir, 'cached_player_gamelogs.csv'), index=False)
-        print(f"Cached game logs for {len(all_gamelogs)} players")
+    df = pd.DataFrame(all_player_stats)
 
-    return all_gamelogs
+    def convert_minutes(val):
+        try:
+            if isinstance(val, str) and ':' in val:
+                parts = val.split(':')
+                return round(float(parts[0]) + float(parts[1]) / 60, 1)
+            return float(val)
+        except (ValueError, TypeError):
+            return 0.0
+    df['MIN'] = df['MIN'].apply(convert_minutes)
+
+    numeric_cols = ['FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT',
+                    'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB',
+                    'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
+    df.to_csv(os.path.join(current_dir, 'cached_player_gamelogs.csv'), index=False)
+    print(f"Cached {len(df)} player-game records from {len(recent_games)} games")
 
 
 def scrape_todays_games(current_dir, season=2025):
@@ -493,10 +502,10 @@ def main():
     current_season = 2026
 
     # 1. Load active players from cached files
-    active_players, player_info_list = load_cached_players(current_dir)
+    active_players, _ = load_cached_players(current_dir)
 
-    # 2. Scrape recent game logs for all active players
-    scrape_player_gamelogs(current_dir, active_players, player_info_list, season=current_season)
+    # 2. Scrape recent game logs via box scores (one request per game, not per player)
+    scrape_gamelogs_from_boxscores(current_dir, last_n_days=30)
 
     # 3. Scrape today's games
     scrape_todays_games(current_dir, season=2025)  # 2025-26 season
