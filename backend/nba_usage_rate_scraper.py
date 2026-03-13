@@ -39,7 +39,7 @@ def scrape_nba_usage_rates():
     url = "https://stats.nba.com/stats/leaguedashplayerstats?" + urlencode(_API_PARAMS)
 
     print("Fetching NBA usage stats from NBA Stats API...")
-    page = Fetcher.get(url, stealthy_headers=True, headers=_NBA_HEADERS, timeout=30)
+    page = Fetcher.get(url, stealthy_headers=True, headers=_NBA_HEADERS, timeout=60, retries=3)
 
     data = json.loads(page.text)
     result_set = data['resultSets'][0]
