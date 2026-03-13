@@ -20,10 +20,7 @@ def scrape_nba_usage_rates():
         network_idle=True,
     )
 
-    table_el = page.css('#advanced')
-    if not table_el:
-        raise RuntimeError("Could not find #advanced table on Basketball Reference page")
-    tables = pd.read_html(StringIO(table_el[0].get()), attrs={'id': 'advanced'})
+    tables = pd.read_html(StringIO(page.html_content), attrs={'id': 'advanced'})
     df = tables[0]
 
     # Drop duplicate header rows that BBR injects mid-table
