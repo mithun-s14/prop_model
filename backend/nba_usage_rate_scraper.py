@@ -11,7 +11,7 @@ def scrape_nba_usage_rates():
     print("Fetching NBA usage stats from NBA Stats API...")
     stats = leaguedashplayerstats.LeagueDashPlayerStats(
         measure_type_detailed_defense='Usage',
-        per_mode_simple='PerGame',
+        per_mode_detailed='PerGame',
         season='2025-26',
         season_type_all_star='Regular Season',
         timeout=60,
