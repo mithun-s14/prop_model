@@ -9,7 +9,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import time
 import re
-from scrapling.fetchers import FetcherSession
+from scrapling.fetchers import Fetcher
 
 # NBA team abbreviations for Basketball Reference
 NBA_TEAMS = [
@@ -51,16 +51,11 @@ NBA_TEAM_INFO = {
     'WAS': {'id': 1610612764, 'full_name': 'Washington Wizards'}
 }
 
-# Scrapling session with TLS fingerprint impersonation (replaces cloudscraper/curl_cffi)
-_session = FetcherSession(impersonate='chrome')
-
-
 def safe_request(url, max_retries=3):
-    """Make a safe HTTP request with retry logic and rate limiting.
-    Uses Scrapling FetcherSession (curl_cffi-based TLS fingerprinting) to bypass bot protection."""
+    """Make a safe HTTP request with retry logic and rate limiting."""
     for attempt in range(max_retries):
         try:
-            response = _session.get(url, stealthy_headers=True, timeout=30)
+            response = Fetcher.get(url, stealthy_headers=True, timeout=30)
             time.sleep(3.5)  # Rate limiting - Basketball Reference: 20 req/min
             return response
         except Exception as e:
