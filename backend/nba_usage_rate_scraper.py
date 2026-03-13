@@ -11,7 +11,7 @@ def scrape_nba_usage_rates():
     """
     Fetch NBA player usage rates from Basketball Reference advanced stats.
     Uses StealthyFetcher (camoufox) to bypass Cloudflare protection.
-    Returns a DataFrame with PLAYER, TEAM, and USGPCT columns.
+    Returns a DataFrame with PLAYER, Team, and USGPCT columns.
     """
     print("Fetching NBA usage stats from Basketball Reference...")
     page = StealthyFetcher.fetch(
@@ -32,13 +32,13 @@ def scrape_nba_usage_rates():
     # Drop duplicate header rows that BBR injects mid-table
     df = df[df['Player'] != 'Player'].reset_index(drop=True)
 
-    df = df.rename(columns={'Player': 'PLAYER', 'Tm': 'TEAM', 'USG%': 'USGPCT'})
+    df = df.rename(columns={'Player': 'PLAYER', 'Tm': 'Team', 'USG%': 'USGPCT'})
     df['USGPCT'] = pd.to_numeric(df['USGPCT'], errors='coerce')
 
     # Keep one row per player (first occurrence = most recent team after trades)
     df = df.drop_duplicates(subset='PLAYER', keep='first')
 
-    df = df[['PLAYER', 'TEAM', 'USGPCT']].dropna(subset=['USGPCT'])
+    df = df[['PLAYER', 'Team', 'USGPCT']].dropna(subset=['USGPCT'])
     print(f"Successfully fetched data for {len(df)} players")
     return df
 
@@ -66,7 +66,7 @@ def cache_usage_data():
 
         print("\nSample of players and usage rates:")
         for _, row in usage_data.head(10).iterrows():
-            print(f"  {row['PLAYER']} ({row['TEAM']}): {row['USGPCT']}%")
+            print(f"  {row['PLAYER']} ({row['Team']}): {row['USGPCT']}%")
 
         return usage_data
     else:
