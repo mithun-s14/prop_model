@@ -493,7 +493,10 @@ def main():
     # 1. Load active players from cached files
     active_players, player_info_list = load_cached_players(current_dir)
 
-    # 2. Scrape today's games
+    # 2. Scrape recent game logs for all active players
+    scrape_player_gamelogs(current_dir, active_players, player_info_list, season=current_season)
+
+    # 3. Scrape today's games
     scrape_todays_games(current_dir, season=2025)  # 2025-26 season
 
     # 3. Create metadata file
