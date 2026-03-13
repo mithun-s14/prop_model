@@ -56,6 +56,8 @@ def safe_request(url, max_retries=3):
     for attempt in range(max_retries):
         try:
             response = Fetcher.get(url, stealthy_headers=True, timeout=30)
+            if response.status != 200:
+                raise Exception(f"HTTP {response.status} for {url}")
             time.sleep(3.5)  # Rate limiting - Basketball Reference: 20 req/min
             return response
         except Exception as e:
@@ -371,8 +373,8 @@ def scrape_player_gamelogs(current_dir, player_list, player_info_list, season=20
             if games:
                 df = pd.DataFrame(games)
 
-                if 'date' in df.columns and not df.empty:
-                    df['date_parsed'] = pd.to_datetime(df['date'], errors='coerce')
+                if 'GAME_DATE' in df.columns and not df.empty:
+                    df['date_parsed'] = pd.to_datetime(df['GAME_DATE'], errors='coerce')
                     df = df[df['date_parsed'] >= start_date]
                     df = df.drop('date_parsed', axis=1)
 
