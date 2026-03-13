@@ -1,6 +1,6 @@
 """
 NBA Data Scraper - Fetches and caches NBA data from Basketball Reference
-Runs daily via GitHub Actions - Uses direct web scraping
+Runs daily via GitHub Actions - Uses Scrapling for HTTP requests
 """
 
 import os
@@ -8,45 +8,8 @@ import json
 import pandas as pd
 from datetime import datetime, timedelta
 import time
-import requests
-from bs4 import BeautifulSoup
 import re
-
-# --- Anti-bot bypass: cloudscraper first, curl_cffi fallback, then plain requests ---
-_scraper_session = None
-
-def _get_session():
-    """Create a session that can bypass Cloudflare/bot protection.
-    Tries cloudscraper first, then curl_cffi, then falls back to plain requests."""
-    global _scraper_session
-    if _scraper_session is not None:
-        return _scraper_session
-
-    # Attempt 1: cloudscraper (handles Cloudflare JS challenges)
-    try:
-        import cloudscraper
-        _scraper_session = cloudscraper.create_scraper(
-            browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False}
-        )
-        print("[Session] Using cloudscraper")
-        return _scraper_session
-    except ImportError:
-        print("[Session] cloudscraper not installed, trying curl_cffi...")
-
-    # Attempt 2: curl_cffi (impersonates real browser TLS fingerprint)
-    try:
-        from curl_cffi.requests import Session
-        _scraper_session = Session(impersonate="chrome")
-        print("[Session] Using curl_cffi")
-        return _scraper_session
-    except ImportError:
-        print("[Session] curl_cffi not installed, falling back to plain requests")
-
-    # Attempt 3: plain requests (will likely get 403 from datacenter IPs)
-    _scraper_session = requests.Session()
-    _scraper_session.headers.update(HEADERS)
-    print("[Session] Using plain requests (may get blocked)")
-    return _scraper_session
+from scrapling.fetchers import FetcherSession
 
 # NBA team abbreviations for Basketball Reference
 NBA_TEAMS = [
@@ -88,30 +51,28 @@ NBA_TEAM_INFO = {
     'WAS': {'id': 1610612764, 'full_name': 'Washington Wizards'}
 }
 
-# Headers to mimic a browser request
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-}
+# Scrapling session with TLS fingerprint impersonation (replaces cloudscraper/curl_cffi)
+_session = FetcherSession(impersonate='chrome')
+
 
 def safe_request(url, max_retries=3):
     """Make a safe HTTP request with retry logic and rate limiting.
-    Uses cloudscraper/curl_cffi to bypass bot protection."""
-    session = _get_session()
+    Uses Scrapling FetcherSession (curl_cffi-based TLS fingerprinting) to bypass bot protection."""
     for attempt in range(max_retries):
         try:
-            response = session.get(url, headers=HEADERS, timeout=30)
-            response.raise_for_status()
+            response = _session.get(url, stealthy_headers=True, timeout=30)
             time.sleep(3.5)  # Rate limiting - Basketball Reference: 20 req/min
             return response
         except Exception as e:
             print(f"  Attempt {attempt + 1} failed: {e}")
             if attempt < max_retries - 1:
-                wait = 5 * (attempt + 1)  # Longer backoff: 5s, 10s
+                wait = 5 * (attempt + 1)
                 print(f"  Retrying in {wait}s...")
                 time.sleep(wait)
             else:
                 raise
     return None
+
 
 def scrape_team_roster(team_abbr, season=2026):
     """Scrape team roster from Basketball Reference"""
@@ -119,52 +80,52 @@ def scrape_team_roster(team_abbr, season=2026):
     print(f"  Fetching: {url}")
 
     try:
-        response = safe_request(url)
-        soup = BeautifulSoup(response.content, 'html.parser')
+        page = safe_request(url)
 
-        # Find the roster table
-        roster_table = soup.find('table', {'id': 'roster'})
-        if not roster_table:
+        roster_tables = page.css('table#roster')
+        if not roster_tables:
             print(f"  No roster table found for {team_abbr}")
             return []
 
+        roster_table = roster_tables[0]
         players = []
-        rows = roster_table.find('tbody').find_all('tr')
 
-        for row in rows:
+        for row in roster_table.css('tbody tr'):
             # Skip header rows
-            if row.get('class') and 'thead' in row.get('class'):
+            if 'thead' in (row.attrib.get('class') or ''):
                 continue
 
-            cols = row.find_all(['th', 'td'])
+            cols = row.css('th, td')
             if len(cols) < 6:
                 continue
 
-            # Extract player data
-            player_link = cols[1].find('a')
-            if not player_link:
+            player_links = cols[1].css('a')
+            if not player_links:
                 continue
 
-            player_name = player_link.text.strip()
-            player_url = player_link.get('href', '')
+            player_link = player_links[0]
+            player_name = (player_link.css('::text').get() or '').strip()
+            player_href = player_link.attrib.get('href', '')
 
-            # Extract player ID from URL (/players/c/curryst01.html)
             player_id = None
-            if player_url:
-                match = re.search(r'/players/\w/(\w+)\.html', player_url)
+            if player_href:
+                match = re.search(r'/players/\w/(\w+)\.html', player_href)
                 if match:
                     player_id = match.group(1)
+
+            def col_text(idx):
+                return (cols[idx].css('::text').get() or '').strip() if len(cols) > idx else ''
 
             player_data = {
                 'player_name': player_name,
                 'player_id': player_id,
-                'number': cols[0].text.strip() if len(cols) > 0 else '',
-                'position': cols[2].text.strip() if len(cols) > 2 else '',
-                'height': cols[3].text.strip() if len(cols) > 3 else '',
-                'weight': cols[4].text.strip() if len(cols) > 4 else '',
-                'birth_date': cols[5].text.strip() if len(cols) > 5 else '',
-                'experience': cols[7].text.strip() if len(cols) > 7 else '',
-                'college': cols[8].text.strip() if len(cols) > 8 else ''
+                'number': col_text(0),
+                'position': col_text(2),
+                'height': col_text(3),
+                'weight': col_text(4),
+                'birth_date': col_text(5),
+                'experience': col_text(7),
+                'college': col_text(8),
             }
             players.append(player_data)
 
@@ -174,14 +135,12 @@ def scrape_team_roster(team_abbr, season=2026):
         print(f"  Error scraping roster for {team_abbr}: {e}")
         return []
 
-def scrape_schedule(season=2025):
-    """Scrape NBA schedule from Basketball Reference
-    Note: season parameter is the start year (2025 for 2025-26 season)
-    """
-    # Basketball Reference breaks schedule into months
-    # We'll scrape the full season schedule
-    months = ['october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june']
 
+def scrape_schedule(season=2025):
+    """Scrape NBA schedule from Basketball Reference.
+    season parameter is the start year (2025 for 2025-26 season).
+    """
+    months = ['october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june']
     all_games = []
 
     for month in months:
@@ -189,55 +148,52 @@ def scrape_schedule(season=2025):
         print(f"  Fetching schedule for {month}...")
 
         try:
-            response = safe_request(url)
-            soup = BeautifulSoup(response.content, 'html.parser')
+            page = safe_request(url)
 
-            # Find the schedule table
-            schedule_table = soup.find('table', {'id': 'schedule'})
-            if not schedule_table:
+            schedule_tables = page.css('table#schedule')
+            if not schedule_tables:
                 print(f"    No games found for {month}")
                 continue
 
-            rows = schedule_table.find('tbody').find_all('tr')
+            schedule_table = schedule_tables[0]
 
-            for row in rows:
-                # Skip header rows
-                if row.get('class') and 'thead' in row.get('class'):
+            for row in schedule_table.css('tbody tr'):
+                if 'thead' in (row.attrib.get('class') or ''):
                     continue
 
-                cols = row.find_all(['th', 'td'])
+                cols = row.css('th, td')
                 if len(cols) < 7:
                     continue
 
-                # Extract game data
-                date_str = cols[0].text.strip()
+                def col_text(idx):
+                    return (cols[idx].css('::text').get() or '').strip() if len(cols) > idx else ''
+
+                date_str = col_text(0)
                 if not date_str:
                     continue
 
-                # Parse teams
-                visitor_team = cols[2].text.strip() if len(cols) > 2 else ''
-                visitor_pts = cols[3].text.strip() if len(cols) > 3 else ''
-                home_team = cols[4].text.strip() if len(cols) > 4 else ''
-                home_pts = cols[5].text.strip() if len(cols) > 5 else ''
+                visitor_team = col_text(2)
+                visitor_pts = col_text(3)
+                home_team = col_text(4)
+                home_pts = col_text(5)
 
-                # Box score link to get more info
-                box_score_link = cols[6].find('a') if len(cols) > 6 else None
                 game_id = None
-                if box_score_link:
-                    href = box_score_link.get('href', '')
-                    match = re.search(r'/boxscores/(\w+)\.html', href)
-                    if match:
-                        game_id = match.group(1)
+                if len(cols) > 6:
+                    box_link = cols[6].css('a')
+                    if box_link:
+                        href = box_link[0].attrib.get('href', '')
+                        match = re.search(r'/boxscores/(\w+)\.html', href)
+                        if match:
+                            game_id = match.group(1)
 
-                game_data = {
+                all_games.append({
                     'date': date_str,
                     'visitor_team': visitor_team,
                     'visitor_pts': visitor_pts,
                     'home_team': home_team,
                     'home_pts': home_pts,
-                    'game_id': game_id
-                }
-                all_games.append(game_data)
+                    'game_id': game_id,
+                })
 
         except Exception as e:
             print(f"    Error scraping {month}: {e}")
@@ -245,8 +201,9 @@ def scrape_schedule(season=2025):
 
     return all_games
 
+
 def scrape_player_gamelog(player_id, player_name, season=2026):
-    """Scrape player game log from Basketball Reference
+    """Scrape player game log from Basketball Reference.
     player_id: Basketball Reference player ID (e.g., 'curryst01')
     """
     if not player_id:
@@ -255,56 +212,57 @@ def scrape_player_gamelog(player_id, player_name, season=2026):
     url = f"https://www.basketball-reference.com/players/{player_id[0]}/{player_id}/gamelog/{season}"
 
     try:
-        response = safe_request(url)
-        soup = BeautifulSoup(response.content, 'html.parser')
+        page = safe_request(url)
 
-        # Find the game log table (pgl_basic for basic stats)
-        gamelog_table = soup.find('table', {'id': 'pgl_basic'})
-        if not gamelog_table:
+        gamelog_tables = page.css('table#pgl_basic')
+        if not gamelog_tables:
             return None
 
+        gamelog_table = gamelog_tables[0]
         games = []
-        rows = gamelog_table.find('tbody').find_all('tr')
 
-        for row in rows:
-            # Skip header rows and rows without data
-            if row.get('class') and 'thead' in row.get('class'):
+        for row in gamelog_table.css('tbody tr'):
+            if 'thead' in (row.attrib.get('class') or ''):
                 continue
-            if row.find('th', {'data-stat': 'reason'}):  # Skip "Did Not Play" rows
+            # Skip "Did Not Play" / "Inactive" rows
+            if row.css('td[data-stat="reason"]'):
                 continue
 
-            cols = row.find_all(['th', 'td'])
+            cols = row.css('th, td')
             if len(cols) < 10:
                 continue
 
-            # Extract game stats (column names match nba_api format for compatibility)
+            def stat(name):
+                el = row.css(f'td[data-stat="{name}"]::text')
+                return (el.get() or '').strip()
+
             game_data = {
                 'PLAYER_NAME': player_name,
                 'Player_ID': player_id,
-                'GAME_DATE': row.find('td', {'data-stat': 'date_game'}).text.strip() if row.find('td', {'data-stat': 'date_game'}) else '',
-                'team': row.find('td', {'data-stat': 'team_id'}).text.strip() if row.find('td', {'data-stat': 'team_id'}) else '',
-                'opponent': row.find('td', {'data-stat': 'opp_id'}).text.strip() if row.find('td', {'data-stat': 'opp_id'}) else '',
-                'game_result': row.find('td', {'data-stat': 'game_result'}).text.strip() if row.find('td', {'data-stat': 'game_result'}) else '',
-                'MIN': row.find('td', {'data-stat': 'mp'}).text.strip() if row.find('td', {'data-stat': 'mp'}) else '',
-                'FGM': row.find('td', {'data-stat': 'fg'}).text.strip() if row.find('td', {'data-stat': 'fg'}) else '',
-                'FGA': row.find('td', {'data-stat': 'fga'}).text.strip() if row.find('td', {'data-stat': 'fga'}) else '',
-                'FG_PCT': row.find('td', {'data-stat': 'fg_pct'}).text.strip() if row.find('td', {'data-stat': 'fg_pct'}) else '',
-                'FG3M': row.find('td', {'data-stat': 'fg3'}).text.strip() if row.find('td', {'data-stat': 'fg3'}) else '',
-                'FG3A': row.find('td', {'data-stat': 'fg3a'}).text.strip() if row.find('td', {'data-stat': 'fg3a'}) else '',
-                'FG3_PCT': row.find('td', {'data-stat': 'fg3_pct'}).text.strip() if row.find('td', {'data-stat': 'fg3_pct'}) else '',
-                'FTM': row.find('td', {'data-stat': 'ft'}).text.strip() if row.find('td', {'data-stat': 'ft'}) else '',
-                'FTA': row.find('td', {'data-stat': 'fta'}).text.strip() if row.find('td', {'data-stat': 'fta'}) else '',
-                'FT_PCT': row.find('td', {'data-stat': 'ft_pct'}).text.strip() if row.find('td', {'data-stat': 'ft_pct'}) else '',
-                'OREB': row.find('td', {'data-stat': 'orb'}).text.strip() if row.find('td', {'data-stat': 'orb'}) else '',
-                'DREB': row.find('td', {'data-stat': 'drb'}).text.strip() if row.find('td', {'data-stat': 'drb'}) else '',
-                'REB': row.find('td', {'data-stat': 'trb'}).text.strip() if row.find('td', {'data-stat': 'trb'}) else '',
-                'AST': row.find('td', {'data-stat': 'ast'}).text.strip() if row.find('td', {'data-stat': 'ast'}) else '',
-                'STL': row.find('td', {'data-stat': 'stl'}).text.strip() if row.find('td', {'data-stat': 'stl'}) else '',
-                'BLK': row.find('td', {'data-stat': 'blk'}).text.strip() if row.find('td', {'data-stat': 'blk'}) else '',
-                'TOV': row.find('td', {'data-stat': 'tov'}).text.strip() if row.find('td', {'data-stat': 'tov'}) else '',
-                'PF': row.find('td', {'data-stat': 'pf'}).text.strip() if row.find('td', {'data-stat': 'pf'}) else '',
-                'PTS': row.find('td', {'data-stat': 'pts'}).text.strip() if row.find('td', {'data-stat': 'pts'}) else '',
-                'game_score': row.find('td', {'data-stat': 'game_score'}).text.strip() if row.find('td', {'data-stat': 'game_score'}) else '',
+                'GAME_DATE': stat('date_game'),
+                'team': stat('team_id'),
+                'opponent': stat('opp_id'),
+                'game_result': stat('game_result'),
+                'MIN': stat('mp'),
+                'FGM': stat('fg'),
+                'FGA': stat('fga'),
+                'FG_PCT': stat('fg_pct'),
+                'FG3M': stat('fg3'),
+                'FG3A': stat('fg3a'),
+                'FG3_PCT': stat('fg3_pct'),
+                'FTM': stat('ft'),
+                'FTA': stat('fta'),
+                'FT_PCT': stat('ft_pct'),
+                'OREB': stat('orb'),
+                'DREB': stat('drb'),
+                'REB': stat('trb'),
+                'AST': stat('ast'),
+                'STL': stat('stl'),
+                'BLK': stat('blk'),
+                'TOV': stat('tov'),
+                'PF': stat('pf'),
+                'PTS': stat('pts'),
+                'game_score': stat('game_score'),
             }
             games.append(game_data)
 
@@ -313,6 +271,7 @@ def scrape_player_gamelog(player_id, player_name, season=2026):
     except Exception as e:
         print(f"    Error scraping gamelog for {player_name}: {e}")
         return None
+
 
 def scrape_all_teams(current_dir):
     """Cache all NBA teams"""
@@ -328,15 +287,14 @@ def scrape_all_teams(current_dir):
         })
 
     df = pd.DataFrame(all_teams)
-    csv_path = os.path.join(current_dir, 'cached_all_teams.csv')
-    df.to_csv(csv_path, index=False)
+    df.to_csv(os.path.join(current_dir, 'cached_all_teams.csv'), index=False)
 
-    json_path = os.path.join(current_dir, 'cached_all_teams.json')
-    with open(json_path, 'w') as f:
+    with open(os.path.join(current_dir, 'cached_all_teams.json'), 'w') as f:
         json.dump(all_teams, f)
 
     print(f"Cached {len(all_teams)} teams")
     return all_teams
+
 
 def scrape_active_players_from_rosters(current_dir, season=2026):
     """Get active players by scraping team rosters from Basketball Reference"""
@@ -359,7 +317,7 @@ def scrape_active_players_from_rosters(current_dir, season=2026):
                 player_name = player['player_name']
                 player_id = player['player_id']
 
-                player_info = {
+                player_info_list.append({
                     'player_id': player_id,
                     'player_name': player_name,
                     'team_id': team_id,
@@ -371,46 +329,38 @@ def scrape_active_players_from_rosters(current_dir, season=2026):
                     'weight': player.get('weight', ''),
                     'birth_date': player.get('birth_date', ''),
                     'experience': player.get('experience', ''),
-                    'college': player.get('college', '')
-                }
-                player_info_list.append(player_info)
+                    'college': player.get('college', ''),
+                })
 
-                # Also create player dict for compatibility
                 active_players.append({
                     'id': player_id,
                     'full_name': player_name,
                     'first_name': player_name.split()[0] if ' ' in player_name else '',
-                    'last_name': player_name.split()[-1] if ' ' in player_name else player_name
+                    'last_name': player_name.split()[-1] if ' ' in player_name else player_name,
                 })
 
         except Exception as e:
             print(f"    Error: {e}")
             continue
 
-    # Save player info
-    df_info = pd.DataFrame(player_info_list)
-    player_info_path = os.path.join(current_dir, 'cached_player_info.csv')
-    df_info.to_csv(player_info_path, index=False)
-
-    # Save active players list
+    pd.DataFrame(player_info_list).to_csv(
+        os.path.join(current_dir, 'cached_player_info.csv'), index=False
+    )
     df_players = pd.DataFrame(active_players)
-    players_csv_path = os.path.join(current_dir, 'cached_all_players.csv')
-    df_players.to_csv(players_csv_path, index=False)
+    df_players.to_csv(os.path.join(current_dir, 'cached_all_players.csv'), index=False)
 
-    players_json_path = os.path.join(current_dir, 'cached_all_players.json')
-    with open(players_json_path, 'w') as f:
+    with open(os.path.join(current_dir, 'cached_all_players.json'), 'w') as f:
         json.dump(active_players, f)
 
     print(f"Cached {len(active_players)} active players from team rosters")
-
     return active_players, player_info_list
+
 
 def scrape_player_gamelogs(current_dir, player_list, player_info_list, season=2026, last_n_days=30):
     """Cache recent game logs for all active players"""
     print(f"Scraping recent game logs (season {season})...")
     all_gamelogs = []
 
-    # Calculate date range for filtering
     end_date = datetime.now()
     start_date = end_date - timedelta(days=last_n_days)
 
@@ -421,14 +371,11 @@ def scrape_player_gamelogs(current_dir, player_list, player_info_list, season=20
 
             print(f"  {i+1}/{len(player_list)}: {player_name} ({player_id})")
 
-            # Get game logs from Basketball Reference
             games = scrape_player_gamelog(player_id, player_name, season)
 
             if games:
-                # Convert to DataFrame and filter by date
                 df = pd.DataFrame(games)
 
-                # Parse dates and filter for recent games
                 if 'date' in df.columns and not df.empty:
                     df['date_parsed'] = pd.to_datetime(df['date'], errors='coerce')
                     df = df[df['date_parsed'] >= start_date]
@@ -444,7 +391,6 @@ def scrape_player_gamelogs(current_dir, player_list, player_info_list, season=20
     if all_gamelogs:
         combined_df = pd.concat(all_gamelogs, ignore_index=True)
 
-        # Convert MIN from "MM:SS" string to numeric minutes
         if 'MIN' in combined_df.columns:
             def convert_minutes(val):
                 try:
@@ -456,18 +402,17 @@ def scrape_player_gamelogs(current_dir, player_list, player_info_list, season=20
                     return 0.0
             combined_df['MIN'] = combined_df['MIN'].apply(convert_minutes)
 
-        # Ensure all stat columns are numeric
         numeric_cols = ['FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA', 'FT_PCT',
                         'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'game_score']
         for col in numeric_cols:
             if col in combined_df.columns:
                 combined_df[col] = pd.to_numeric(combined_df[col], errors='coerce').fillna(0)
 
-        gamelogs_path = os.path.join(current_dir, 'cached_player_gamelogs.csv')
-        combined_df.to_csv(gamelogs_path, index=False)
+        combined_df.to_csv(os.path.join(current_dir, 'cached_player_gamelogs.csv'), index=False)
         print(f"Cached game logs for {len(all_gamelogs)} players")
 
     return all_gamelogs
+
 
 def scrape_todays_games(current_dir, season=2025):
     """Cache today's NBA schedule"""
@@ -478,7 +423,6 @@ def scrape_todays_games(current_dir, season=2025):
     json_path = os.path.join(current_dir, 'cached_todays_games.json')
 
     try:
-        # Get full season schedule
         all_games = scrape_schedule(season)
 
         if not all_games:
@@ -488,20 +432,17 @@ def scrape_todays_games(current_dir, season=2025):
                 json.dump([], f)
             return
 
-        # Convert to DataFrame
         schedule_df = pd.DataFrame(all_games)
 
         print(f"Schedule columns: {list(schedule_df.columns)}")
         print(f"Schedule shape: {schedule_df.shape}")
 
-        # Parse dates and filter for today
         schedule_df['date_parsed'] = pd.to_datetime(schedule_df['date'], errors='coerce')
         todays_games = schedule_df[schedule_df['date_parsed'].dt.strftime('%Y-%m-%d') == today]
 
         if not todays_games.empty:
             todays_games = todays_games.drop('date_parsed', axis=1)
 
-            # Add numeric team ID columns for model.py compatibility
             name_to_id = {info['full_name']: info['id'] for info in NBA_TEAM_INFO.values()}
             todays_games = todays_games.copy()
             todays_games['HOME_TEAM_ID'] = todays_games['home_team'].map(name_to_id)
@@ -517,7 +458,6 @@ def scrape_todays_games(current_dir, season=2025):
             print(f"Cached {len(todays_games)} games for {today}")
         else:
             print("No games today")
-            # Create empty files
             pd.DataFrame().to_csv(csv_path, index=False)
             with open(json_path, 'w') as f:
                 json.dump([], f)
@@ -526,61 +466,49 @@ def scrape_todays_games(current_dir, season=2025):
         print(f"Error fetching today's games: {e}")
         import traceback
         traceback.print_exc()
-        # Create empty files on error
         pd.DataFrame().to_csv(csv_path, index=False)
         with open(json_path, 'w') as f:
             json.dump([], f)
 
+
 def load_cached_players(current_dir):
     """Load active_players and player_info_list from cached CSV files"""
-    players_csv = os.path.join(current_dir, 'cached_all_players.csv')
-    player_info_csv = os.path.join(current_dir, 'cached_player_info.csv')
-
-    df_players = pd.read_csv(players_csv)
+    df_players = pd.read_csv(os.path.join(current_dir, 'cached_all_players.csv'))
     active_players = df_players.to_dict('records')
 
-    df_info = pd.read_csv(player_info_csv)
+    df_info = pd.read_csv(os.path.join(current_dir, 'cached_player_info.csv'))
     player_info_list = df_info.to_dict('records')
 
     print(f"Loaded {len(active_players)} active players from cache")
     return active_players, player_info_list
 
+
 def main():
     """Main scraping workflow"""
     print("="*60)
-    print("NBA DATA SCRAPER - Basketball Reference (Direct Scraping)")
+    print("NBA DATA SCRAPER - Basketball Reference (Scrapling)")
     print("="*60)
 
-    # Get the directory where this script is located
     current_dir = os.path.dirname(os.path.abspath(__file__))
     print(f"Saving files to: {current_dir}")
 
     start_time = time.time()
     current_season = 2026
 
-    # 1. Scrape teams (commented out since teams won't be changing)
-    # all_teams = scrape_all_teams(current_dir)
-
-    # 2. Load active players from cached files (roster scraping commented out since rosters won't change soon)
-    # active_players, player_info_list = scrape_active_players_from_rosters(current_dir, season=current_season)
+    # 1. Load active players from cached files
     active_players, player_info_list = load_cached_players(current_dir)
 
-    # 3. Scrape game logs for active players (last 30 days)
-    # scrape_player_gamelogs(current_dir, active_players, player_info_list, season=current_season, last_n_days=30)
-
-    # 4. Scrape today's games
+    # 2. Scrape today's games
     scrape_todays_games(current_dir, season=2025)  # 2025-26 season
 
-    # 5. Create metadata file
+    # 3. Create metadata file
     metadata = {
         'last_updated': datetime.now().isoformat(),
         'active_players': len(active_players),
         'season': current_season,
-        'source': 'Basketball Reference (Direct Scraping)'
+        'source': 'Basketball Reference (Scrapling)',
     }
-
-    metadata_path = os.path.join(current_dir, 'cache_metadata.json')
-    with open(metadata_path, 'w') as f:
+    with open(os.path.join(current_dir, 'cache_metadata.json'), 'w') as f:
         json.dump(metadata, f, indent=2)
 
     elapsed = time.time() - start_time
@@ -588,6 +516,7 @@ def main():
     print(f"SCRAPING COMPLETE! Took {elapsed/60:.1f} minutes")
     print(f"Active players: {len(active_players)}")
     print("="*60)
+
 
 if __name__ == "__main__":
     main()
