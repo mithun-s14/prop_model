@@ -23,12 +23,14 @@ def scrape_nba_usage_rates():
     tables = pd.read_html(StringIO(page.html_content), attrs={'id': 'advanced'})
     df = tables[0]
 
+    # Flatten multi-level columns — take only the bottom level (actual stat names)
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(-1)
+
+    print(f"Columns found: {list(df.columns)}")
+
     # Drop duplicate header rows that BBR injects mid-table
     df = df[df['Player'] != 'Player'].reset_index(drop=True)
-
-    # Flatten multi-level columns if present
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = [' '.join(str(c) for c in col).strip() for col in df.columns]
 
     df = df.rename(columns={'Player': 'PLAYER', 'Tm': 'TEAM', 'USG%': 'USGPCT'})
     df['USGPCT'] = pd.to_numeric(df['USGPCT'], errors='coerce')
