@@ -1,52 +1,22 @@
 import pandas as pd
-import json
 import os
-from urllib.parse import urlencode
-from scrapling.fetchers import Fetcher
-
-
-# NBA Stats API requires these headers to accept requests from non-browser clients
-_NBA_HEADERS = {
-    'Host': 'stats.nba.com',
-    'Referer': 'https://www.nba.com/',
-    'Accept': 'application/json, text/plain, */*',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Origin': 'https://www.nba.com',
-    'x-nba-stats-origin': 'stats',
-    'x-nba-stats-token': 'true',
-}
-
-_API_PARAMS = {
-    'College': '', 'Conference': '', 'Country': '', 'DateFrom': '', 'DateTo': '',
-    'Division': '', 'DraftPick': '', 'DraftYear': '', 'GameScope': '',
-    'GameSegment': '', 'Height': '', 'ISTRound': '', 'LastNGames': 0,
-    'LeagueID': '00', 'Location': '', 'MeasureType': 'Usage', 'Month': 0,
-    'OpponentTeamID': 0, 'Outcome': '', 'PORound': 0, 'PaceAdjust': 'N',
-    'PerMode': 'PerGame', 'Period': 0, 'PlayerExperience': '',
-    'PlayerPosition': '', 'PlusMinus': 'N', 'Rank': 'N',
-    'Season': '2025-26', 'SeasonSegment': '', 'SeasonType': 'Regular Season',
-    'ShotClockRange': '', 'StarterBench': '', 'TeamID': 0,
-    'VsConference': '', 'VsDivision': '', 'Weight': '',
-}
+from nba_api.stats.endpoints import leaguedashplayerstats
 
 
 def scrape_nba_usage_rates():
     """
-    Fetch NBA player usage rates from the NBA Stats JSON API.
-    Replaces the previous Selenium-based multi-page scraper with a single API call.
+    Fetch NBA player usage rates from the NBA Stats API via nba_api.
     Returns a DataFrame of all players with usage statistics.
     """
-    url = "https://stats.nba.com/stats/leaguedashplayerstats?" + urlencode(_API_PARAMS)
-
     print("Fetching NBA usage stats from NBA Stats API...")
-    page = Fetcher.get(url, stealthy_headers=True, headers=_NBA_HEADERS, timeout=60, retries=3)
-
-    data = json.loads(page.text)
-    result_set = data['resultSets'][0]
-    headers = result_set['headers']
-    rows = result_set['rowSet']
-
-    df = pd.DataFrame(rows, columns=headers)
+    stats = leaguedashplayerstats.LeagueDashPlayerStats(
+        measure_type_detailed_defense='Usage',
+        per_mode_simple='PerGame',
+        season='2025-26',
+        season_type_all_star='Regular Season',
+        timeout=60,
+    )
+    df = stats.get_data_frames()[0]
     print(f"Successfully fetched data for {len(df)} players")
     return df
 
