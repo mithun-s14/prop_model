@@ -1,7 +1,7 @@
 from io import StringIO
 import pandas as pd
 import os
-from scrapling.fetchers import DynamicFetcher
+from scrapling.fetchers import PlayWrightFetcher
 
 
 def scrape_hashtag_basketball_table4():
@@ -14,7 +14,7 @@ def scrape_hashtag_basketball_table4():
 
     try:
         print("Loading Hashtag Basketball defense vs position page...")
-        page = DynamicFetcher.fetch(
+        page = PlayWrightFetcher.fetch(
             "https://hashtagbasketball.com/nba-defense-vs-position",
             headless=True,
             network_idle=True,
