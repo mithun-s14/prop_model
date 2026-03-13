@@ -1,7 +1,7 @@
 import pandas as pd
 from io import StringIO
 import os
-from scrapling.fetchers import DynamicFetcher
+from scrapling.fetchers import StealthyFetcher
 
 
 _BBR_URL = "https://www.basketball-reference.com/leagues/NBA_2026_advanced.html"
@@ -10,17 +10,20 @@ _BBR_URL = "https://www.basketball-reference.com/leagues/NBA_2026_advanced.html"
 def scrape_nba_usage_rates():
     """
     Fetch NBA player usage rates from Basketball Reference advanced stats.
-    Uses DynamicFetcher (Playwright) to bypass Cloudflare protection.
+    Uses StealthyFetcher (camoufox) to bypass Cloudflare protection.
     Returns a DataFrame with PLAYER, TEAM, and USGPCT columns.
     """
     print("Fetching NBA usage stats from Basketball Reference...")
-    page = DynamicFetcher.fetch(
+    page = StealthyFetcher.fetch(
         _BBR_URL,
         headless=True,
         network_idle=True,
     )
 
-    tables = pd.read_html(StringIO(page.html), attrs={'id': 'advanced'})
+    table_el = page.css('#advanced')
+    if not table_el:
+        raise RuntimeError("Could not find #advanced table on Basketball Reference page")
+    tables = pd.read_html(StringIO(table_el[0].get()), attrs={'id': 'advanced'})
     df = tables[0]
 
     # Drop duplicate header rows that BBR injects mid-table
