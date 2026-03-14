@@ -175,8 +175,9 @@ def scrape_schedule(season=2025):
                 home_pts = col_text(5)
 
                 game_id = None
-                if len(cols) > 6:
-                    box_link = cols[6].css('a')
+                box_td = row.css('td[data-stat="box_score_text"]')
+                if box_td:
+                    box_link = box_td[0].css('a')
                     if box_link:
                         href = box_link[0].attrib.get('href', '')
                         match = re.search(r'/boxscores/(\w+)\.html', href)
@@ -359,7 +360,7 @@ def scrape_active_players_from_rosters(current_dir, season=2026):
     return active_players, player_info_list
 
 
-def scrape_gamelogs_from_boxscores(current_dir, last_n_days=30):
+def scrape_gamelogs_from_boxscores(current_dir, all_games, last_n_days=30):
     """
     Cache recent player gamelogs by fetching BBRef box score pages.
     Scrapes one page per game (covering all players) rather than one page
@@ -370,8 +371,6 @@ def scrape_gamelogs_from_boxscores(current_dir, last_n_days=30):
     end_date = datetime.now()
     start_date = end_date - timedelta(days=last_n_days)
 
-    # Reuse the schedule scraper to get completed game IDs
-    all_games = scrape_schedule(season=2025)
     recent_games = []
     for game in all_games:
         if not game.get('game_id'):
@@ -385,6 +384,12 @@ def scrape_gamelogs_from_boxscores(current_dir, last_n_days=30):
 
     print(f"Found {len(recent_games)} completed games in the last {last_n_days} days")
 
+    if not recent_games:
+        raise RuntimeError(
+            f"No completed games found in the last {last_n_days} days. "
+            "Schedule scraping may have failed or Basketball Reference blocked requests."
+        )
+
     all_player_stats = []
     for i, game in enumerate(recent_games):
         game_id = game['game_id']
@@ -394,8 +399,10 @@ def scrape_gamelogs_from_boxscores(current_dir, last_n_days=30):
         all_player_stats.extend(players)
 
     if not all_player_stats:
-        print("No player stats collected from box scores")
-        return
+        raise RuntimeError(
+            f"Scraped {len(recent_games)} games but collected zero player stats. "
+            "Box score parsing may have failed or page structure changed."
+        )
 
     df = pd.DataFrame(all_player_stats)
 
@@ -420,7 +427,7 @@ def scrape_gamelogs_from_boxscores(current_dir, last_n_days=30):
     print(f"Cached {len(df)} player-game records from {len(recent_games)} games")
 
 
-def scrape_todays_games(current_dir, season=2025):
+def scrape_todays_games(current_dir, all_games):
     """Cache today's NBA schedule"""
     print("Scraping today's games...")
     today = datetime.now().strftime("%Y-%m-%d")
@@ -429,7 +436,6 @@ def scrape_todays_games(current_dir, season=2025):
     json_path = os.path.join(current_dir, 'cached_todays_games.json')
 
     try:
-        all_games = scrape_schedule(season)
 
         if not all_games:
             print("No schedule data found")
@@ -504,13 +510,18 @@ def main():
     # 1. Load active players from cached files
     active_players, _ = load_cached_players(current_dir)
 
-    # 2. Scrape recent game logs via box scores (one request per game, not per player)
-    scrape_gamelogs_from_boxscores(current_dir, last_n_days=30)
+    # 2. Scrape schedule once and reuse for both gamelog and today's games
+    print("Scraping full season schedule...")
+    all_games = scrape_schedule(season=2025)  # 2025-26 season
+    print(f"Total games in schedule: {len(all_games)}")
 
-    # 3. Scrape today's games
-    scrape_todays_games(current_dir, season=2025)  # 2025-26 season
+    # 3. Scrape recent game logs via box scores (one request per game, not per player)
+    scrape_gamelogs_from_boxscores(current_dir, all_games, last_n_days=30)
 
-    # 3. Create metadata file
+    # 4. Scrape today's games (reuses already-fetched schedule)
+    scrape_todays_games(current_dir, all_games)
+
+    # 5. Create metadata file
     metadata = {
         'last_updated': datetime.now().isoformat(),
         'active_players': len(active_players),
