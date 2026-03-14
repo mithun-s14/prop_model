@@ -212,7 +212,7 @@ def scrape_boxscore(game_id, game_date):
         players = []
 
         for team_abbr in NBA_TEAMS:
-            table_id = f'box-{team_abbr.lower()}-game-basic'
+            table_id = f'box-{team_abbr}-game-basic'
             tables = page.css(f'table#{table_id}')
             if not tables:
                 continue
