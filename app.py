@@ -11,6 +11,11 @@ from model import create_complete_prediction
 
 STAT_MAP = {"Points": "Points", "Assists": "Assists", "Rebounds": "Rebounds"}
 
+# Load player names for autocomplete
+_players_csv = os.path.join(os.path.dirname(__file__), 'backend', 'cached_all_players.csv')
+_players_df = pd.read_csv(_players_csv)
+ALL_PLAYER_NAMES = sorted(_players_df['full_name'].dropna().tolist())
+
 custom_css = """
 .gradio-container {
     background-color: #09090b !important;
@@ -227,9 +232,12 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Base(
 
     with gr.Group(elem_classes="input-card"):
         with gr.Row():
-            player_input = gr.Textbox(
+            player_input = gr.Dropdown(
                 label="Player Name",
-                placeholder="e.g., LeBron James",
+                choices=ALL_PLAYER_NAMES,
+                allow_custom_value=True,
+                filterable=True,
+                info="Start typing to search players",
             )
             stat_input = gr.Dropdown(
                 label="Target Stat",
