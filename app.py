@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+import json
 
 # Add backend to path so we can import from it
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
@@ -15,6 +16,90 @@ STAT_MAP = {"Points": "Points", "Assists": "Assists", "Rebounds": "Rebounds"}
 _players_csv = os.path.join(os.path.dirname(__file__), 'backend', 'cached_all_players.csv')
 _players_df = pd.read_csv(_players_csv)
 ALL_PLAYER_NAMES = sorted(_players_df['full_name'].dropna().tolist())
+
+_autocomplete_head = f"""
+<script>
+(function() {{
+    const names = {json.dumps(ALL_PLAYER_NAMES)};
+
+    const dropdown = document.createElement('div');
+    dropdown.style.cssText = 'position:fixed;z-index:99999;background:#27272a;border:1px solid #3f3f46;border-radius:8px;max-height:280px;overflow-y:auto;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.5)';
+
+    function ensureInBody() {{
+        if (!dropdown.parentNode && document.body) document.body.appendChild(dropdown);
+    }}
+
+    function showSuggestions(inp) {{
+        ensureInBody();
+        const q = inp.value.trim().toLowerCase();
+        if (!q) {{ dropdown.style.display = 'none'; return; }}
+        const matches = names.filter(function(n) {{ return n.toLowerCase().includes(q); }}).slice(0, 10);
+        if (!matches.length) {{ dropdown.style.display = 'none'; return; }}
+        dropdown.innerHTML = '';
+        matches.forEach(function(name) {{
+            const item = document.createElement('div');
+            item.textContent = name;
+            item.style.cssText = 'padding:10px 14px;color:#fff;cursor:pointer;font-size:0.9rem;';
+            item.onmouseenter = function() {{ item.style.background = '#3f3f46'; }};
+            item.onmouseleave = function() {{ item.style.background = ''; }};
+            item.onmousedown = function(e) {{
+                e.preventDefault();
+                inp.value = name;
+                inp.dispatchEvent(new Event('input', {{bubbles: true}}));
+                dropdown.style.display = 'none';
+            }};
+            dropdown.appendChild(item);
+        }});
+        const r = inp.getBoundingClientRect();
+        dropdown.style.top = (r.bottom + 4) + 'px';
+        dropdown.style.left = r.left + 'px';
+        dropdown.style.width = r.width + 'px';
+        dropdown.style.display = 'block';
+    }}
+
+    function findPlayerInput() {{
+        const labels = document.querySelectorAll('label, span');
+        for (var i = 0; i < labels.length; i++) {{
+            if (labels[i].textContent.trim() === 'Player Name') {{
+                var block = labels[i].closest('div');
+                while (block) {{
+                    var inp = block.querySelector('input[type="text"], textarea');
+                    if (inp) return inp;
+                    block = block.parentElement;
+                    if (!block || block === document.body) break;
+                }}
+            }}
+        }}
+        return null;
+    }}
+
+    function tryAttach() {{
+        ensureInBody();
+        var inp = findPlayerInput();
+        if (inp && !inp._acAttached) {{
+            inp._acAttached = true;
+            inp.addEventListener('input', function() {{ showSuggestions(inp); }});
+            inp.addEventListener('focus', function() {{ if (inp.value) showSuggestions(inp); }});
+            inp.addEventListener('blur', function() {{ setTimeout(function() {{ dropdown.style.display = 'none'; }}, 150); }});
+            observer.disconnect();
+            return true;
+        }}
+        return false;
+    }}
+
+    var observer = new MutationObserver(function() {{ tryAttach(); }});
+
+    function start() {{
+        if (!tryAttach()) {{
+            observer.observe(document.body, {{ childList: true, subtree: true }});
+        }}
+    }}
+
+    if (document.body) {{ start(); }}
+    else {{ document.addEventListener('DOMContentLoaded', start); }}
+}})();
+</script>
+"""
 
 custom_css = """
 .gradio-container {
@@ -232,12 +317,9 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Base(
 
     with gr.Group(elem_classes="input-card"):
         with gr.Row():
-            player_input = gr.Dropdown(
+            player_input = gr.Textbox(
                 label="Player Name",
-                choices=ALL_PLAYER_NAMES.head(50).tolist(),  # Show top 50 players for quick access
-                allow_custom_value=True,
-                filterable=True,
-                info="Start typing to search players",
+                placeholder="Start typing a name...",
             )
             stat_input = gr.Dropdown(
                 label="Target Stat",
@@ -269,4 +351,4 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Base(
 
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(head=_autocomplete_head)
