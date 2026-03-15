@@ -25,7 +25,7 @@ An NBA player stat prediction tool that uses an ensemble of six machine learning
 
 - **ML / Data**: scikit-learn, XGBoost, LightGBM, pandas, NumPy
 - **Frontend**: Gradio, Tailwind CSS
-- **Data Collection**: Custom scrapers using Selenium and curl_cffi
+- **Data Collection**: Custom scrapers using Scrapling
 
 ## Project Structure
 
@@ -80,4 +80,5 @@ pytest
 ```
 
 ### To-Do List
+- [ ] Autocomplete for player names
 - [ ] Allow users to enter opponent information so users can analyze players in future games
