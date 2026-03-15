@@ -234,7 +234,7 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Base(
         with gr.Row():
             player_input = gr.Dropdown(
                 label="Player Name",
-                choices=ALL_PLAYER_NAMES,
+                choices=ALL_PLAYER_NAMES.head(50).tolist(),  # Show top 50 players for quick access
                 allow_custom_value=True,
                 filterable=True,
                 info="Start typing to search players",
