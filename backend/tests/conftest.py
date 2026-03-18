@@ -110,6 +110,58 @@ def sample_defense_stats():
     }
 
 
+# FantasyPros last-15 averages fixture
+@pytest.fixture
+def sample_fantasypros_df():
+    """DataFrame matching the schema returned by scrape_fantasypros_last15."""
+    return pd.DataFrame({
+        'Player': ['LeBron James', 'Stephen Curry', 'Kevin Durant', 'Jayson Tatum'],
+        'Team':   ['LAL', 'GSW', 'HOU', 'BOS'],
+        'POS':    ['SF', 'PG', 'SF', 'SF'],
+        'GP':     [10, 10, 10, 10],
+        'MPG':    [34.2, 32.1, 35.0, 36.5],
+        'PPG':    [27.3, 29.8, 26.1, 28.4],
+        'FGA':    [18.5, 20.2, 18.0, 19.3],
+        '3PA':    [ 4.8, 12.3,  5.0,  8.9],
+        'FTA':    [ 6.2,  4.4,  7.5,  5.8],
+        'RPG':    [ 8.1,  4.5,  7.0,  8.1],
+        'APG':    [ 7.4,  6.3,  3.8,  4.2],
+        'SPG':    [ 1.3,  1.5,  0.9,  1.1],
+        'BPG':    [ 0.9,  0.2,  1.2,  0.8],
+        'TOV':    [ 3.1,  2.8,  2.5,  2.3],
+    })
+
+
+# RealGM last-10 averages fixture (mirrors realgm_last10_averages.csv)
+@pytest.fixture
+def sample_realgm_df():
+    """DataFrame matching the schema returned by scrape_realgm_last10."""
+    return pd.DataFrame({
+        'Player': ['LeBron James', 'Stephen Curry', 'Kevin Durant', 'Jayson Tatum'],
+        'Team':   ['LAL', 'GSW', 'HOU', 'BOS'],
+        'GP':     [10, 10, 10, 10],
+        'MPG':    [34.2, 32.1, 35.0, 36.5],
+        'PPG':    [27.3, 29.8, 26.1, 28.4],
+        'FGM':    [10.2, 10.5,  9.8, 10.1],
+        'FGA':    [18.5, 20.2, 18.0, 19.3],
+        'FG_PCT': [55.1, 52.0, 54.4, 52.3],
+        '3PM':    [ 1.8,  5.2,  2.1,  3.4],
+        '3PA':    [ 4.8, 12.3,  5.0,  8.9],
+        '3P_PCT': [37.5, 42.3, 42.0, 38.2],
+        'FTM':    [ 5.1,  3.8,  6.2,  4.9],
+        'FTA':    [ 6.2,  4.4,  7.5,  5.8],
+        'FT_PCT': [82.3, 86.4, 82.7, 84.5],
+        'ORB':    [ 1.2,  0.4,  0.8,  1.0],
+        'DRB':    [ 6.9,  4.1,  6.2,  7.1],
+        'RPG':    [ 8.1,  4.5,  7.0,  8.1],
+        'APG':    [ 7.4,  6.3,  3.8,  4.2],
+        'SPG':    [ 1.3,  1.5,  0.9,  1.1],
+        'BPG':    [ 0.9,  0.2,  1.2,  0.8],
+        'TOV':    [ 3.1,  2.8,  2.5,  2.3],
+        'PF':     [ 1.8,  2.1,  2.4,  2.0],
+    })
+
+
 # Player features fixture
 @pytest.fixture
 def sample_player_features():
