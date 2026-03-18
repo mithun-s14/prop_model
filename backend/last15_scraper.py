@@ -2,7 +2,11 @@ import pandas as pd
 from io import StringIO
 import os
 from datetime import datetime, timedelta
-from scrapling.fetchers import StealthyFetcher
+try:
+    from scrapling.fetchers import StealthyFetcher
+    _SCRAPING_AVAILABLE = True
+except ImportError:
+    _SCRAPING_AVAILABLE = False
 
 _FANTASYPROS_URL = "https://www.fantasypros.com/nba/stats/avg-overall.php?days=15"
 _CACHE_FILE = "fantasypros_last15_averages.csv"
@@ -36,6 +40,9 @@ def scrape_fantasypros_last15():
     Uses StealthyFetcher to bypass bot protection.
     Returns a cleaned DataFrame.
     """
+    if not _SCRAPING_AVAILABLE:
+        print("scrapling not available — cannot scrape. Load from cache instead.")
+        return pd.DataFrame()
     print("Fetching FantasyPros last-15 averages...")
     page = StealthyFetcher.fetch(_FANTASYPROS_URL, headless=True, network_idle=True)
 
