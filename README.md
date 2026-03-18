@@ -27,25 +27,6 @@ An NBA player stat prediction tool that uses an ensemble of six machine learning
 - **Frontend**: Gradio, Tailwind CSS
 - **Data Collection**: Custom scrapers using Scrapling
 
-## Project Structure
-
-```
-prop_model/
-├── app.py                  # Gradio web application ()
-├── backend/
-│   ├── model.py            # ML ensemble pipeline
-│   ├── api.py              # API endpoints
-│   ├── nba_data_scraper.py # Player & game data scraper
-│   ├── nba_defense_scraper.py
-│   ├── nba_usage_rate_scraper.py
-│   ├── update_all_data.sh  # Refresh all cached data
-│   ├── tests/              # Pytest test suite
-│   └── cached_*.csv/json   # Scraped data cache
-├── frontend/               # UI styling (Tailwind CSS), was used when I used Render + Vercel to deploy this app, then found out Render didn't have enough RAM.
-├── requirements.txt
-└── packages.txt
-```
-
 ## Getting Started
 
 ### Prerequisites
@@ -80,5 +61,4 @@ pytest
 ```
 
 ### To-Do List
-- [ ] Autocomplete for player names
 - [ ] Allow users to enter opponent information so users can analyze players in future games
