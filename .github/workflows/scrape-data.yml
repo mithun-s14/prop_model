@@ -49,6 +49,12 @@ jobs:
         cd backend
         python nba_data_scraper.py
 
+    - name: Run FantasyPros last-15 scraper
+      continue-on-error: true
+      run: |
+        cd backend
+        python fantasypros_scraper.py
+
     - name: Commit and push if changed
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}

@@ -4,6 +4,7 @@ from time import time
 import json
 import pandas as pd
 import numpy as np
+from backend.last15_scraper import get_player_last15_features
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
 from sklearn.neural_network import MLPRegressor
@@ -903,16 +904,11 @@ def create_complete_prediction(player_name, target_stat, spread, total):
         print(f"Player '{player_name}' not found.")
         return None
     
-    player_id = player_info['id']
-    team_abbr = player_info['team']
-    
-    # 2. Get Game Logs and Calculate Features
-    gamelogs = fetch_recent_gamelog(player_id, team_abbr)
-    if gamelogs.empty:
-        print("No game logs found.")
+    # 2. Get last 15 days averages from FantasyPros (replaces gamelog scraping)
+    player_features = get_player_last15_features(player_name)
+    if not player_features:
+        print("No last-15 averages found.")
         return None
-        
-    player_features = calculate_rolling_features(gamelogs)
     
     # 3. Get real usage rate
     real_usage_rate = calculate_usage_rate(player_name)
@@ -1016,7 +1012,7 @@ def print_prediction_results(result):
 
 # Main execution
 if __name__ == "__main__":
-    player_to_predict = "LeBron James"
+    player_to_predict = "Jayson Tatum" # Change this to predict for different players
     spread = -3.5
     total = 235.5
 
