@@ -84,22 +84,37 @@ def scrape_fantasypros_last15():
 
 def load_fantasypros_last15(force_refresh=False):
     """
-    Load last-15 averages from cache, re-scraping if stale or missing.
+    Load last-15 averages from cache, re-scraping only when fresh data is
+    needed AND the scraping environment is available (browser binaries present).
+    Falls back to stale cache rather than crashing when scraping is unavailable.
     """
-    if not force_refresh and os.path.exists(_CACHE_FILE):
+    cache_exists = os.path.exists(_CACHE_FILE)
+
+    if not force_refresh and cache_exists:
         file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(_CACHE_FILE))
         if file_age < timedelta(hours=_CACHE_MAX_AGE_HOURS):
             df = pd.read_csv(_CACHE_FILE)
             print(f"Loaded FantasyPros last-15 averages from cache ({len(df)} players)")
             return df
-        else:
-            print("FantasyPros cache is stale, re-scraping...")
+        print("FantasyPros cache is stale, attempting re-scrape...")
 
-    df = scrape_fantasypros_last15()
-    if not df.empty:
-        df.to_csv(_CACHE_FILE, index=False)
-        print(f"Saved FantasyPros last-15 averages to {_CACHE_FILE}")
-    return df
+    try:
+        df = scrape_fantasypros_last15()
+        if not df.empty:
+            df.to_csv(_CACHE_FILE, index=False)
+            print(f"Saved FantasyPros last-15 averages to {_CACHE_FILE}")
+            return df
+    except Exception as e:
+        print(f"Scraping failed ({e}), falling back to cached data.")
+
+    # Scraping failed or unavailable — use whatever cache exists
+    if cache_exists:
+        df = pd.read_csv(_CACHE_FILE)
+        print(f"Using stale cache ({len(df)} players)")
+        return df
+
+    print("No cache and scraping unavailable — returning empty DataFrame.")
+    return pd.DataFrame()
 
 
 def get_player_last15_features(player_name):
