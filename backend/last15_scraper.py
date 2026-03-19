@@ -9,7 +9,7 @@ except ImportError:
     _SCRAPING_AVAILABLE = False
 
 _FANTASYPROS_URL = "https://www.fantasypros.com/nba/stats/avg-overall.php?days=15"
-_CACHE_FILE = "fantasypros_last15_averages.csv"
+_CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fantasypros_last15_averages.csv")
 _CACHE_MAX_AGE_HOURS = 24
 
 _STATUS_TAGS = {'DTD', 'OUT', 'G-League', 'TWO-WAY', 'FA'}
