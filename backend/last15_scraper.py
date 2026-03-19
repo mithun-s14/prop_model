@@ -151,17 +151,20 @@ def get_player_last15_features(player_name):
     row = match.iloc[0]
     print(f"Found FantasyPros last-15 stats for: {row['Player']}")
 
+    # FantasyPros avg-overall columns: PTS, REB, AST, BLK, STL, FG%, FT%,
+    # 3PM, TO, GP, MIN, FTM, 2PM.  FGA and 3PA (attempts) are not provided;
+    # use FTM and 3PM (makes) as the closest available proxies.
     return {
-        'pts_roll_avg':  float(row.get('PPG', 0) or 0),
-        'reb_roll_avg':  float(row.get('RPG', 0) or 0),
-        'ast_roll_avg':  float(row.get('APG', 0) or 0),
-        'min_roll_avg':  float(row.get('MPG', 0) or 0),
-        'fga_roll_avg':  float(row.get('FGA', 0) or 0),
-        'fg3a_roll_avg': float(row.get('3PA', 0) or 0),
-        'fta_roll_avg':  float(row.get('FTA', 0) or 0),
-        'stl_roll_avg':  float(row.get('SPG', 0) or 0),
-        'blk_roll_avg':  float(row.get('BPG', 0) or 0),
-        'tov_roll_avg':  float(row.get('TOV', 0) or 0),
+        'pts_roll_avg':  float(row.get('PTS', 0) or 0),
+        'reb_roll_avg':  float(row.get('REB', 0) or 0),
+        'ast_roll_avg':  float(row.get('AST', 0) or 0),
+        'min_roll_avg':  float(row.get('MIN', 0) or 0),
+        'fga_roll_avg':  float(row.get('FGA', row.get('2PM', 0)) or 0),
+        'fg3a_roll_avg': float(row.get('3PA', row.get('3PM', 0)) or 0),
+        'fta_roll_avg':  float(row.get('FTA', row.get('FTM', 0)) or 0),
+        'stl_roll_avg':  float(row.get('STL', 0) or 0),
+        'blk_roll_avg':  float(row.get('BLK', 0) or 0),
+        'tov_roll_avg':  float(row.get('TO',  0) or 0),
     }
 
 

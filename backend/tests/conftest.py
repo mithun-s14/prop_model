@@ -110,25 +110,27 @@ def sample_defense_stats():
     }
 
 
-# FantasyPros last-15 averages fixture
+# FantasyPros last-15 averages fixture — mirrors actual CSV column names
 @pytest.fixture
 def sample_fantasypros_df():
-    """DataFrame matching the schema returned by scrape_fantasypros_last15."""
+    """DataFrame matching the real schema from FantasyPros avg-overall (last 15 days)."""
     return pd.DataFrame({
         'Player': ['LeBron James', 'Stephen Curry', 'Kevin Durant', 'Jayson Tatum'],
-        'Team':   ['LAL', 'GSW', 'HOU', 'BOS'],
-        'POS':    ['SF', 'PG', 'SF', 'SF'],
+        'PTS':    [27.3, 29.8, 26.1, 28.4],
+        'REB':    [ 8.1,  4.5,  7.0,  8.1],
+        'AST':    [ 7.4,  6.3,  3.8,  4.2],
+        'BLK':    [ 0.9,  0.2,  1.2,  0.8],
+        'STL':    [ 1.3,  1.5,  0.9,  1.1],
+        'FG%':    [0.529, 0.452, 0.544, 0.452],
+        'FT%':    [0.756, 0.921, 0.882, 0.845],
+        '3PM':    [ 1.8,  5.2,  2.1,  3.4],
+        'TO':     [ 3.1,  2.8,  2.5,  2.3],
         'GP':     [10, 10, 10, 10],
-        'MPG':    [34.2, 32.1, 35.0, 36.5],
-        'PPG':    [27.3, 29.8, 26.1, 28.4],
-        'FGA':    [18.5, 20.2, 18.0, 19.3],
-        '3PA':    [ 4.8, 12.3,  5.0,  8.9],
-        'FTA':    [ 6.2,  4.4,  7.5,  5.8],
-        'RPG':    [ 8.1,  4.5,  7.0,  8.1],
-        'APG':    [ 7.4,  6.3,  3.8,  4.2],
-        'SPG':    [ 1.3,  1.5,  0.9,  1.1],
-        'BPG':    [ 0.9,  0.2,  1.2,  0.8],
-        'TOV':    [ 3.1,  2.8,  2.5,  2.3],
+        'MIN':    [34.2, 32.1, 35.0, 36.5],
+        'FTM':    [ 5.1,  3.8,  6.2,  4.9],
+        '2PM':    [ 8.4,  5.3,  7.7,  6.7],
+        'A/TO':   [ 2.4,  2.3,  1.5,  1.8],
+        'PF':     [ 1.8,  2.1,  2.4,  2.0],
     })
 
 
