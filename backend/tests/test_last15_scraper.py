@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from backend.last15_scraper import (
+from last15_scraper import (
     scrape_fantasypros_last15,
     load_fantasypros_last15,
     get_player_last15_features,
@@ -65,20 +65,20 @@ class TestScrapeFantasyProsLast15:
         mock.html_content = df.to_html(index=False)
         return mock
 
-    @patch('fantasypros_scraper.StealthyFetcher.fetch')
+    @patch('last15_scraper.StealthyFetcher.fetch')
     def test_returns_dataframe(self, mock_fetch, sample_fantasypros_df):
         mock_fetch.return_value = self._mock_page(sample_fantasypros_df)
         result = scrape_fantasypros_last15()
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
 
-    @patch('fantasypros_scraper.StealthyFetcher.fetch')
+    @patch('last15_scraper.StealthyFetcher.fetch')
     def test_returns_correct_row_count(self, mock_fetch, sample_fantasypros_df):
         mock_fetch.return_value = self._mock_page(sample_fantasypros_df)
         result = scrape_fantasypros_last15()
         assert len(result) == len(sample_fantasypros_df)
 
-    @patch('fantasypros_scraper.StealthyFetcher.fetch')
+    @patch('last15_scraper.StealthyFetcher.fetch')
     def test_drops_rank_column(self, mock_fetch, sample_fantasypros_df):
         df_with_rank = sample_fantasypros_df.copy()
         df_with_rank.insert(0, 'RK', range(1, len(df_with_rank) + 1))
@@ -86,14 +86,14 @@ class TestScrapeFantasyProsLast15:
         result = scrape_fantasypros_last15()
         assert 'RK' not in result.columns
 
-    @patch('fantasypros_scraper.StealthyFetcher.fetch')
+    @patch('last15_scraper.StealthyFetcher.fetch')
     def test_deduplicates_players(self, mock_fetch, sample_fantasypros_df):
         df_dupes = pd.concat([sample_fantasypros_df, sample_fantasypros_df], ignore_index=True)
         mock_fetch.return_value = self._mock_page(df_dupes)
         result = scrape_fantasypros_last15()
         assert result['Player'].nunique() == sample_fantasypros_df['Player'].nunique()
 
-    @patch('fantasypros_scraper.StealthyFetcher.fetch')
+    @patch('last15_scraper.StealthyFetcher.fetch')
     def test_stat_columns_are_numeric(self, mock_fetch, sample_fantasypros_df):
         mock_fetch.return_value = self._mock_page(sample_fantasypros_df)
         result = scrape_fantasypros_last15()
@@ -101,14 +101,14 @@ class TestScrapeFantasyProsLast15:
             if col not in ('Player', 'Team', 'POS'):
                 assert pd.api.types.is_numeric_dtype(result[col]), f"{col} is not numeric"
 
-    @patch('fantasypros_scraper.pd.read_html', side_effect=ValueError("No tables found"))
-    @patch('fantasypros_scraper.StealthyFetcher.fetch')
+    @patch('last15_scraper.pd.read_html', side_effect=ValueError("No tables found"))
+    @patch('last15_scraper.StealthyFetcher.fetch')
     def test_no_table_returns_empty_df(self, mock_fetch, mock_read_html, sample_fantasypros_df):
         mock_fetch.return_value = self._mock_page(sample_fantasypros_df)
         result = scrape_fantasypros_last15()
         assert result.empty
 
-    @patch('fantasypros_scraper.StealthyFetcher.fetch')
+    @patch('last15_scraper.StealthyFetcher.fetch')
     def test_drops_mid_table_header_rows(self, mock_fetch, sample_fantasypros_df):
         """FantasyPros sometimes injects a repeated header row mid-table."""
         header_row = pd.DataFrame([{col: col for col in sample_fantasypros_df.columns}])
@@ -117,7 +117,7 @@ class TestScrapeFantasyProsLast15:
         result = scrape_fantasypros_last15()
         assert not (result['Player'] == 'Player').any()
 
-    @patch('fantasypros_scraper.StealthyFetcher.fetch')
+    @patch('last15_scraper.StealthyFetcher.fetch')
     def test_cleans_player_names(self, mock_fetch, sample_fantasypros_df):
         """Team/position suffix and status tags should be stripped from names."""
         dirty_df = sample_fantasypros_df.copy()
@@ -137,19 +137,19 @@ class TestScrapeFantasyProsLast15:
 # ---------------------------------------------------------------------------
 
 class TestLoadFantasyProsLast15:
-    @patch('fantasypros_scraper.scrape_fantasypros_last15')
-    @patch('fantasypros_scraper.os.path.exists', return_value=False)
+    @patch('last15_scraper.scrape_fantasypros_last15')
+    @patch('last15_scraper.os.path.exists', return_value=False)
     def test_scrapes_when_no_cache(self, mock_exists, mock_scrape, sample_fantasypros_df):
         mock_scrape.return_value = sample_fantasypros_df
-        with patch('fantasypros_scraper.pd.DataFrame.to_csv'):
+        with patch('last15_scraper.pd.DataFrame.to_csv'):
             result = load_fantasypros_last15()
         mock_scrape.assert_called_once()
         assert not result.empty
 
-    @patch('fantasypros_scraper.scrape_fantasypros_last15')
-    @patch('fantasypros_scraper.pd.read_csv')
-    @patch('fantasypros_scraper.os.path.getmtime')
-    @patch('fantasypros_scraper.os.path.exists', return_value=True)
+    @patch('last15_scraper.scrape_fantasypros_last15')
+    @patch('last15_scraper.pd.read_csv')
+    @patch('last15_scraper.os.path.getmtime')
+    @patch('last15_scraper.os.path.exists', return_value=True)
     def test_uses_cache_when_fresh(self, mock_exists, mock_mtime, mock_csv, mock_scrape, sample_fantasypros_df):
         mock_mtime.return_value = datetime.now().timestamp()
         mock_csv.return_value = sample_fantasypros_df
@@ -157,25 +157,25 @@ class TestLoadFantasyProsLast15:
         mock_scrape.assert_not_called()
         assert not result.empty
 
-    @patch('fantasypros_scraper.scrape_fantasypros_last15')
-    @patch('fantasypros_scraper.pd.read_csv')
-    @patch('fantasypros_scraper.os.path.getmtime')
-    @patch('fantasypros_scraper.os.path.exists', return_value=True)
+    @patch('last15_scraper.scrape_fantasypros_last15')
+    @patch('last15_scraper.pd.read_csv')
+    @patch('last15_scraper.os.path.getmtime')
+    @patch('last15_scraper.os.path.exists', return_value=True)
     def test_re_scrapes_when_stale(self, mock_exists, mock_mtime, mock_csv, mock_scrape, sample_fantasypros_df):
         mock_mtime.return_value = (datetime.now() - timedelta(hours=48)).timestamp()
         mock_scrape.return_value = sample_fantasypros_df
-        with patch('fantasypros_scraper.pd.DataFrame.to_csv'):
+        with patch('last15_scraper.pd.DataFrame.to_csv'):
             load_fantasypros_last15()
         mock_scrape.assert_called_once()
 
-    @patch('fantasypros_scraper.scrape_fantasypros_last15')
-    @patch('fantasypros_scraper.pd.read_csv')
-    @patch('fantasypros_scraper.os.path.getmtime')
-    @patch('fantasypros_scraper.os.path.exists', return_value=True)
+    @patch('last15_scraper.scrape_fantasypros_last15')
+    @patch('last15_scraper.pd.read_csv')
+    @patch('last15_scraper.os.path.getmtime')
+    @patch('last15_scraper.os.path.exists', return_value=True)
     def test_force_refresh_bypasses_fresh_cache(self, mock_exists, mock_mtime, mock_csv, mock_scrape, sample_fantasypros_df):
         mock_mtime.return_value = datetime.now().timestamp()
         mock_scrape.return_value = sample_fantasypros_df
-        with patch('fantasypros_scraper.pd.DataFrame.to_csv'):
+        with patch('last15_scraper.pd.DataFrame.to_csv'):
             load_fantasypros_last15(force_refresh=True)
         mock_scrape.assert_called_once()
 
@@ -185,31 +185,31 @@ class TestLoadFantasyProsLast15:
 # ---------------------------------------------------------------------------
 
 class TestGetPlayerLast15Features:
-    @patch('fantasypros_scraper.load_fantasypros_last15')
+    @patch('last15_scraper.load_fantasypros_last15')
     def test_exact_name_match(self, mock_load, sample_fantasypros_df):
         mock_load.return_value = sample_fantasypros_df
         result = get_player_last15_features('LeBron James')
         assert result['pts_roll_avg'] == 27.3
 
-    @patch('fantasypros_scraper.load_fantasypros_last15')
+    @patch('last15_scraper.load_fantasypros_last15')
     def test_partial_name_match(self, mock_load, sample_fantasypros_df):
         mock_load.return_value = sample_fantasypros_df
         result = get_player_last15_features('LeBron')
         assert result['pts_roll_avg'] == 27.3
 
-    @patch('fantasypros_scraper.load_fantasypros_last15')
+    @patch('last15_scraper.load_fantasypros_last15')
     def test_last_name_match(self, mock_load, sample_fantasypros_df):
         mock_load.return_value = sample_fantasypros_df
         result = get_player_last15_features('Curry')
         assert result['pts_roll_avg'] == 29.8
 
-    @patch('fantasypros_scraper.load_fantasypros_last15')
+    @patch('last15_scraper.load_fantasypros_last15')
     def test_player_not_found_returns_empty_dict(self, mock_load, sample_fantasypros_df):
         mock_load.return_value = sample_fantasypros_df
         result = get_player_last15_features('Fake Player')
         assert result == {}
 
-    @patch('fantasypros_scraper.load_fantasypros_last15')
+    @patch('last15_scraper.load_fantasypros_last15')
     def test_returns_all_expected_keys(self, mock_load, sample_fantasypros_df):
         mock_load.return_value = sample_fantasypros_df
         result = get_player_last15_features('LeBron James')
@@ -220,30 +220,30 @@ class TestGetPlayerLast15Features:
         }
         assert set(result.keys()) == expected
 
-    @patch('fantasypros_scraper.load_fantasypros_last15')
+    @patch('last15_scraper.load_fantasypros_last15')
     def test_all_values_are_floats(self, mock_load, sample_fantasypros_df):
         mock_load.return_value = sample_fantasypros_df
         result = get_player_last15_features('Kevin Durant')
         for key, val in result.items():
             assert isinstance(val, float), f"{key} is not float: {type(val)}"
 
-    @patch('fantasypros_scraper.load_fantasypros_last15')
+    @patch('last15_scraper.load_fantasypros_last15')
     def test_maps_correct_columns(self, mock_load, sample_fantasypros_df):
         mock_load.return_value = sample_fantasypros_df
         result = get_player_last15_features('Jayson Tatum')
         row = sample_fantasypros_df[sample_fantasypros_df['Player'] == 'Jayson Tatum'].iloc[0]
-        assert result['pts_roll_avg']  == float(row['PPG'])
-        assert result['reb_roll_avg']  == float(row['RPG'])
-        assert result['ast_roll_avg']  == float(row['APG'])
-        assert result['min_roll_avg']  == float(row['MPG'])
-        assert result['fga_roll_avg']  == float(row['FGA'])
-        assert result['fg3a_roll_avg'] == float(row['3PA'])
-        assert result['fta_roll_avg']  == float(row['FTA'])
-        assert result['stl_roll_avg']  == float(row['SPG'])
-        assert result['blk_roll_avg']  == float(row['BPG'])
-        assert result['tov_roll_avg']  == float(row['TOV'])
+        assert result['pts_roll_avg']  == float(row['PTS'])
+        assert result['reb_roll_avg']  == float(row['REB'])
+        assert result['ast_roll_avg']  == float(row['AST'])
+        assert result['min_roll_avg']  == float(row['MIN'])
+        assert result['fga_roll_avg']  == float(row['2PM'])   # proxy (FGA not in data)
+        assert result['fg3a_roll_avg'] == float(row['3PM'])   # proxy (3PA not in data)
+        assert result['fta_roll_avg']  == float(row['FTM'])   # proxy (FTA not in data)
+        assert result['stl_roll_avg']  == float(row['STL'])
+        assert result['blk_roll_avg']  == float(row['BLK'])
+        assert result['tov_roll_avg']  == float(row['TO'])
 
-    @patch('fantasypros_scraper.load_fantasypros_last15')
+    @patch('last15_scraper.load_fantasypros_last15')
     def test_empty_dataframe_returns_empty_dict(self, mock_load):
         mock_load.return_value = pd.DataFrame()
         result = get_player_last15_features('LeBron James')
