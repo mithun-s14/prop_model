@@ -1,5 +1,6 @@
 import os
 import csv
+import unicodedata
 from time import time
 import json
 import pandas as pd
@@ -229,6 +230,11 @@ class NBAProjectionModel:
         
         return ensemble_pred, confidence, individual_predictions
 
+def _strip_accents(s):
+    """Remove diacritics so accented names match ASCII-stored names."""
+    return unicodedata.normalize('NFD', s).encode('ascii', 'ignore').decode('ascii')
+
+
 def get_player_info(player_name):
     """
     Get player's information from cached data instead of live API
@@ -237,11 +243,15 @@ def get_player_info(player_name):
         # Load cached player info
         player_info_df = pd.read_csv('backend/cached_player_info.csv')
         
-        # Clean player name for matching
-        player_name_clean = player_name.upper().strip()
-        
+        # Clean player name for matching (strip accents so é/č/ć etc. match ASCII)
+        player_name_clean = _strip_accents(player_name).upper().strip()
+
+        names_norm = player_info_df['player_name'].apply(
+            lambda x: _strip_accents(str(x)).upper() if isinstance(x, str) else ''
+        )
+
         # Try exact match first
-        exact_match = player_info_df[player_info_df['player_name'].str.upper() == player_name_clean]
+        exact_match = player_info_df[names_norm == player_name_clean]
         if not exact_match.empty:
             row = exact_match.iloc[0]
             return {
@@ -250,9 +260,9 @@ def get_player_info(player_name):
                 'team_name': row['team_name'],
                 'position': row['position']
             }
-        
+
         # Try partial match
-        partial_match = player_info_df[player_info_df['player_name'].str.upper().str.contains(player_name_clean, na=False)]
+        partial_match = player_info_df[names_norm.str.contains(player_name_clean, na=False)]
         if not partial_match.empty:
             row = partial_match.iloc[0]
             print(f"Found partial match: {row['player_name']}")
@@ -262,10 +272,10 @@ def get_player_info(player_name):
                 'team_name': row['team_name'],
                 'position': row['position']
             }
-        
+
         # Try last name match
         last_name = player_name_clean.split()[-1]
-        last_name_match = player_info_df[player_info_df['player_name'].str.upper().str.contains(last_name, na=False)]
+        last_name_match = player_info_df[names_norm.str.contains(last_name, na=False)]
         if not last_name_match.empty:
             row = last_name_match.iloc[0]
             print(f"Found last name match: {row['player_name']}")
@@ -312,17 +322,22 @@ def get_player_position(player_name):
     except FileNotFoundError:
         pass
 
-    if player_name in player_positions:
-        return player_positions[player_name]
+    player_name_norm = _strip_accents(player_name).upper().strip()
+    # Check positions dict with accent-stripped key
+    positions_norm = {_strip_accents(k).upper(): v for k, v in player_positions.items()}
+    if player_name_norm in positions_norm:
+        return positions_norm[player_name_norm]
 
     # Fallback: get position from cached_player_info.csv (BBRef roster data)
     try:
         player_info_df = pd.read_csv('backend/cached_player_info.csv')
-        match = player_info_df[player_info_df['player_name'].str.upper() == player_name.upper().strip()]
+        names_norm = player_info_df['player_name'].apply(
+            lambda x: _strip_accents(str(x)).upper() if isinstance(x, str) else ''
+        )
+        match = player_info_df[names_norm == player_name_norm]
         if match.empty:
-            # Try partial match
-            last_name = player_name.strip().split()[-1]
-            match = player_info_df[player_info_df['player_name'].str.upper().str.contains(last_name.upper(), na=False)]
+            last_name = player_name_norm.split()[-1]
+            match = player_info_df[names_norm.str.contains(last_name, na=False)]
         if not match.empty:
             pos = str(match.iloc[0]['position'])
             # BBRef positions may be multi-position like "SG-SF"; take primary
@@ -349,27 +364,30 @@ def calculate_usage_rate(player_name):
             print("No usage data available. Please run the usage scraper first.")
             return 25.0  # Default fallback
         
-        # Clean player name for matching
-        player_name_clean = player_name.upper().strip()
-        
-        # Try different matching strategies
+        # Clean player name for matching (strip accents so é/č/ć etc. match ASCII)
+        player_name_clean = _strip_accents(player_name).upper().strip()
+
+        players_norm = usage_df['PLAYER'].apply(
+            lambda x: _strip_accents(str(x)).upper() if isinstance(x, str) else ''
+        )
+
         # Exact match first
-        exact_match = usage_df[usage_df['PLAYER'].str.upper() == player_name_clean]
+        exact_match = usage_df[players_norm == player_name_clean]
         if not exact_match.empty:
             usg_rate = exact_match.iloc[0]['USGPCT']
             print(f"Found usage rate for {player_name}: {usg_rate}%")
             return float(usg_rate)
-        
+
         # Partial match (handles variations in name formatting)
-        partial_match = usage_df[usage_df['PLAYER'].str.upper().str.contains(player_name_clean, na=False)]
+        partial_match = usage_df[players_norm.str.contains(player_name_clean, na=False)]
         if not partial_match.empty:
             usg_rate = partial_match.iloc[0]['USGPCT']
             print(f"Found usage rate for {player_name} (partial match): {usg_rate}%")
             return float(usg_rate)
-        
+
         # Last name match
         last_name = player_name_clean.split()[-1]
-        last_name_match = usage_df[usage_df['PLAYER'].str.upper().str.contains(last_name, na=False)]
+        last_name_match = usage_df[players_norm.str.contains(last_name, na=False)]
         if not last_name_match.empty:
             usg_rate = last_name_match.iloc[0]['USGPCT']
             print(f"Found usage rate for {player_name} (last name match): {usg_rate}%")
