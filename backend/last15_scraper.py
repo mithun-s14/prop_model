@@ -1,3 +1,4 @@
+import unicodedata
 import pandas as pd
 from io import StringIO
 import os
@@ -13,6 +14,11 @@ _CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fantasyp
 _CACHE_MAX_AGE_HOURS = 24
 
 _STATUS_TAGS = {'DTD', 'OUT', 'G-League', 'TWO-WAY', 'FA'}
+
+
+def _strip_accents(s):
+    """Remove diacritics so accented names match ASCII-stored names."""
+    return unicodedata.normalize('NFD', s).encode('ascii', 'ignore').decode('ascii')
 
 
 def _clean_player_name(name):
@@ -131,18 +137,22 @@ def get_player_last15_features(player_name):
         return {}
 
     name_clean = player_name.strip()
+    name_norm = _strip_accents(name_clean).upper()
+
+    # Normalize the stored names once for all comparisons
+    players_norm = df['Player'].str.strip().apply(lambda x: _strip_accents(x).upper() if isinstance(x, str) else '')
 
     # Exact match
-    match = df[df['Player'].str.strip() == name_clean]
+    match = df[players_norm == name_norm]
 
     # Partial match
     if match.empty:
-        match = df[df['Player'].str.contains(name_clean, case=False, na=False)]
+        match = df[players_norm.str.contains(name_norm, na=False)]
 
     # Last name match
     if match.empty:
-        last_name = name_clean.split()[-1]
-        match = df[df['Player'].str.contains(last_name, case=False, na=False)]
+        last_name = name_norm.split()[-1]
+        match = df[players_norm.str.contains(last_name, na=False)]
 
     if match.empty:
         print(f"Warning: '{player_name}' not found in FantasyPros last-15 data.")
