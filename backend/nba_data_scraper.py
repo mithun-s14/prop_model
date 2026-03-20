@@ -6,7 +6,7 @@ Runs daily via GitHub Actions - Uses Scrapling for HTTP requests
 import os
 import json
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 import time
 import re
 from scrapling.fetchers import Fetcher
@@ -200,83 +200,6 @@ def scrape_schedule(season=2025):
     return all_games
 
 
-def scrape_boxscore(game_id, game_date):
-    """
-    Scrape a single BBRef box score page and return all player stats.
-    One box score request covers all players in both teams — far fewer
-    requests than scraping individual player gamelog pages.
-    """
-    url = f"https://www.basketball-reference.com/boxscores/{game_id}.html"
-    try:
-        page = safe_request(url)
-        players = []
-
-        for team_abbr in NBA_TEAMS:
-            table_id = f'box-{team_abbr}-game-basic'
-            tables = page.css(f'table#{table_id}')
-            if not tables:
-                continue
-            table = tables[0]
-
-            for row in table.css('tbody tr'):
-                row_class = row.attrib.get('class') or ''
-                if 'thead' in row_class or 'partial_table' in row_class:
-                    continue
-
-                player_th = row.css('th[data-stat="player"]')
-                if not player_th:
-                    continue
-                player_link = player_th[0].css('a')
-                if not player_link:
-                    continue
-
-                player_name = (player_link[0].css('::text').get() or '').strip()
-                href = player_link[0].attrib.get('href', '')
-                m = re.search(r'/players/\w/(\w+)\.html', href)
-                player_id = m.group(1) if m else None
-
-                def stat(name):
-                    el = row.css(f'td[data-stat="{name}"]::text')
-                    return (el.get() or '').strip()
-
-                mp = stat('mp')
-                if not mp or mp in ('Did Not Play', 'Inactive', 'Did Not Dress', 'Not With Team'):
-                    continue
-
-                players.append({
-                    'PLAYER_NAME': player_name,
-                    'Player_ID': player_id,
-                    'GAME_DATE': game_date,
-                    'team': team_abbr,
-                    'game_id': game_id,
-                    'MIN': mp,
-                    'FGM': stat('fg'),
-                    'FGA': stat('fga'),
-                    'FG_PCT': stat('fg_pct'),
-                    'FG3M': stat('fg3'),
-                    'FG3A': stat('fg3a'),
-                    'FG3_PCT': stat('fg3_pct'),
-                    'FTM': stat('ft'),
-                    'FTA': stat('fta'),
-                    'FT_PCT': stat('ft_pct'),
-                    'OREB': stat('orb'),
-                    'DREB': stat('drb'),
-                    'REB': stat('trb'),
-                    'AST': stat('ast'),
-                    'STL': stat('stl'),
-                    'BLK': stat('blk'),
-                    'TOV': stat('tov'),
-                    'PF': stat('pf'),
-                    'PTS': stat('pts'),
-                })
-
-        return players
-
-    except Exception as e:
-        print(f"  Error scraping box score {game_id}: {e}")
-        return []
-
-
 def scrape_all_teams(current_dir):
     """Cache all NBA teams"""
     print("Fetching all NBA teams...")
@@ -358,73 +281,6 @@ def scrape_active_players_from_rosters(current_dir, season=2026):
 
     print(f"Cached {len(active_players)} active players from team rosters")
     return active_players, player_info_list
-
-
-def scrape_gamelogs_from_boxscores(current_dir, all_games, last_n_days=30):
-    """
-    Cache recent player gamelogs by fetching BBRef box score pages.
-    Scrapes one page per game (covering all players) rather than one page
-    per player — ~150 requests instead of 500+.
-    """
-    print(f"Scraping player gamelogs from box scores (last {last_n_days} days)...")
-
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=last_n_days)
-
-    recent_games = []
-    for game in all_games:
-        if not game.get('game_id'):
-            continue
-        try:
-            game_dt = datetime.strptime(game['date'], '%a, %b %d, %Y')
-            if start_date <= game_dt <= end_date:
-                recent_games.append(game)
-        except Exception:
-            continue
-
-    print(f"Found {len(recent_games)} completed games in the last {last_n_days} days")
-
-    if not recent_games:
-        raise RuntimeError(
-            f"No completed games found in the last {last_n_days} days. "
-            "Schedule scraping may have failed or Basketball Reference blocked requests."
-        )
-
-    all_player_stats = []
-    for i, game in enumerate(recent_games):
-        game_id = game['game_id']
-        game_date = game['date']
-        print(f"  {i+1}/{len(recent_games)}: box score {game_id} ({game_date})")
-        players = scrape_boxscore(game_id, game_date)
-        all_player_stats.extend(players)
-
-    if not all_player_stats:
-        raise RuntimeError(
-            f"Scraped {len(recent_games)} games but collected zero player stats. "
-            "Box score parsing may have failed or page structure changed."
-        )
-
-    df = pd.DataFrame(all_player_stats)
-
-    def convert_minutes(val):
-        try:
-            if isinstance(val, str) and ':' in val:
-                parts = val.split(':')
-                return round(float(parts[0]) + float(parts[1]) / 60, 1)
-            return float(val)
-        except (ValueError, TypeError):
-            return 0.0
-    df['MIN'] = df['MIN'].apply(convert_minutes)
-
-    numeric_cols = ['FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT',
-                    'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB',
-                    'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
-    for col in numeric_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-
-    df.to_csv(os.path.join(current_dir, 'cached_player_gamelogs.csv'), index=False)
-    print(f"Cached {len(df)} player-game records from {len(recent_games)} games")
 
 
 def scrape_todays_games(current_dir, all_games):
@@ -515,10 +371,7 @@ def main():
     all_games = scrape_schedule(season=2025)  # 2025-26 season
     print(f"Total games in schedule: {len(all_games)}")
 
-    # 3. Scrape recent game logs via box scores (one request per game, not per player)
-    scrape_gamelogs_from_boxscores(current_dir, all_games, last_n_days=30)
-
-    # 4. Scrape today's games (reuses already-fetched schedule)
+    # 3. Scrape today's games (reuses already-fetched schedule)
     scrape_todays_games(current_dir, all_games)
 
     # 5. Create metadata file
