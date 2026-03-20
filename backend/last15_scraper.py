@@ -50,7 +50,7 @@ def scrape_fantasypros_last15():
         print("scrapling not available — cannot scrape. Load from cache instead.")
         return pd.DataFrame()
     print("Fetching FantasyPros last-15 averages...")
-    page = StealthyFetcher.fetch(_FANTASYPROS_URL, headless=True, network_idle=True)
+    page = StealthyFetcher.fetch(_FANTASYPROS_URL, headless=True)
 
     try:
         tables = pd.read_html(StringIO(page.html_content))
