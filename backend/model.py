@@ -1,24 +1,20 @@
 import os
 import csv
 import unicodedata
-from time import time
 import json
 import pandas as pd
 import numpy as np
 from backend.last15_scraper import get_player_last15_features
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
-from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 import xgboost as xgb
 import lightgbm as lgb
-import pickle
 from datetime import datetime, timedelta
 import warnings
 
-# import nba_usage_rate_scraper
 warnings.filterwarnings('ignore')
 
 class NBAProjectionModel:
@@ -670,44 +666,6 @@ def get_tonights_game_context(player_name, spread, total):
     
     print(f"Game context for {team_abbr}: {context}")
     return context
-def get_team_full_name(abbreviation):
-    """
-    Map team abbreviations to full names used by FantasyPros
-    """
-    team_map = {
-        'ATL': ['Atlanta Hawks', 'Hawks'],
-        'BOS': ['Boston Celtics', 'Celtics'],
-        'BKN': ['Brooklyn Nets', 'Nets'],
-        'CHA': ['Charlotte Hornets', 'Hornets'],
-        'CHI': ['Chicago Bulls', 'Bulls'],
-        'CLE': ['Cleveland Cavaliers', 'Cavaliers'],
-        'DAL': ['Dallas Mavericks', 'Mavericks'],
-        'DEN': ['Denver Nuggets', 'Nuggets'],
-        'DET': ['Detroit Pistons', 'Pistons'],
-        'GSW': ['Golden State Warriors', 'Warriors'],
-        'HOU': ['Houston Rockets', 'Rockets'],
-        'IND': ['Indiana Pacers', 'Pacers'],
-        'LAC': ['LA Clippers', 'Clippers'],
-        'LAL': ['Los Angeles Lakers', 'Lakers'],
-        'MEM': ['Memphis Grizzlies', 'Grizzlies'],
-        'MIA': ['Miami Heat', 'Heat'],
-        'MIL': ['Milwaukee Bucks', 'Bucks'],
-        'MIN': ['Minnesota Timberwolves', 'Timberwolves'],
-        'NOP': ['New Orleans Pelicans', 'Pelicans'],
-        'NYK': ['New York Knicks', 'Knicks'],
-        'OKC': ['Oklahoma City Thunder', 'Thunder'],
-        'ORL': ['Orlando Magic', 'Magic'],
-        'PHI': ['Philadelphia 76ers', '76ers'],
-        'PHX': ['Phoenix Suns', 'Suns'],
-        'POR': ['Portland Trail Blazers', 'Trail Blazers'],
-        'SAC': ['Sacramento Kings', 'Kings'],
-        'SAS': ['San Antonio Spurs', 'Spurs'],
-        'TOR': ['Toronto Raptors', 'Raptors'],
-        'UTA': ['Utah Jazz', 'Jazz'],
-        'WAS': ['Washington Wizards', 'Wizards']
-    }
-    return team_map.get(abbreviation, [abbreviation])[0]
-
 # --- Step 5: Get Opponent Defense Stats ---
 def get_cached_defense_data():
     """
@@ -845,52 +803,6 @@ def get_team_full_name(abbreviation):
     }
     return team_mapping.get(abbreviation.upper(), abbreviation)
 
-def get_default_defense_stats():
-    """
-    Return default defense stats when real data is not available
-    """
-    return {
-        'opp_pts_allowed': 25.0,
-        'opp_reb_allowed': 8.0,
-        'opp_ast_allowed': 6.0,
-        'opp_stl_allowed': 1.5,
-        'opp_blk_allowed': 1.0,
-        'opp_to_forced': 3.0,
-        'opp_fg_pct_allowed': 45.0,
-        'opp_3pm_allowed': 2.5,
-        'opp_fd_allowed': 45.0
-    }
-
-def safe_float(value):
-    """Safely convert to float, handling any data type issues"""
-    try:
-        return float(value)
-    except (ValueError, TypeError):
-        return 0.0
-
-# Function to analyze defense matchups for your model
-def analyze_defense_matchup(player_team, opponent_team, player_position):
-    """
-    Analyze the defense matchup for a specific player
-    """
-    defense_stats = get_opponent_defense_stats(opponent_team, player_position)
-    
-    # Calculate matchup advantage/disadvantage
-    # Lower values = better for offense (weaker defense)
-    matchup_score = (
-        defense_stats['opp_pts_allowed'] / 25.0 +  # Normalize to league average ~25
-        defense_stats['opp_fg_pct_allowed'] / 45.0 +  # Normalize to league average ~45%
-        defense_stats['opp_fd_allowed'] / 40.0 +  # Normalize to league average ~40 FD points
-        defense_stats['opp_reb_allowed'] / 8.0 +  # Normalize to league average ~8
-        defense_stats['opp_ast_allowed'] / 6.0    # Normalize to league average ~6
-    ) / 5.0  # Average the factors
-    
-    # Invert so higher = better matchup
-    matchup_rating = 1.0 / matchup_score if matchup_score > 0 else 1.0
-    
-    print(f"Defense matchup rating for {player_team} {player_position} vs {opponent_team}: {matchup_rating:.2f}")
-    return matchup_rating
-
 def safe_float(value):
     """Safely convert to float, handling any data type issues"""
     try:
@@ -912,10 +824,7 @@ def create_complete_prediction(player_name, target_stat, spread, total):
     Complete prediction pipeline with real usage rate integration
     """
     print(f"🚀 Creating ML prediction for {player_name}...")
-    
-    # Update usage data if needed
-    # update_usage_data_if_needed()
-    
+
     # 1. Get Player Info
     player_info = get_player_info(player_name)
     if not player_info:
