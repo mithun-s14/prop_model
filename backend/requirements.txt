@@ -4,6 +4,7 @@ pandas==2.2.0
 numpy==1.26.4
 scikit-learn==1.4.0
 xgboost==2.0.3
+lightgbm==4.3.0
 basketball-reference-scraper
 gunicorn==21.2.0
 openpyxl==3.1.2
