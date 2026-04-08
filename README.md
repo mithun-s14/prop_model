@@ -61,4 +61,5 @@ pytest
 ```
 
 ### To-Do List
+- [ ] Use Scrapling to pull game context info
 - [ ] Allow users to enter opponent information so users can analyze players in future games
