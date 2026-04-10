@@ -149,7 +149,7 @@ class NBAProjectionModel:
         self.scalers[target_name] = scaler
         
         trained_models = {}
-        model_scores = {}  # Store R² scores
+        model_scores = {}  # Store R^2 scores
         
         for name, model in self.models.items():
             try:
@@ -163,7 +163,7 @@ class NBAProjectionModel:
                 model.fit(X_train_used, y_train)
                 trained_models[name] = model
                 
-                # Calculate R² score (goodness of fit)
+                # Calculate R^2 score (goodness of fit)
                 score = model.score(X_test_used, y_test)
                 model_scores[name] = score
                 
@@ -171,7 +171,7 @@ class NBAProjectionModel:
                 y_pred = model.predict(X_test_used)
                 mae = mean_absolute_error(y_test, y_pred)
                 
-                print(f"  {name:15} - MAE: {mae:.2f}, R²: {score:.3f}")
+                print(f"  {name:15} - MAE: {mae:.2f}, R^2: {score:.3f}")
                 
             except Exception as e:
                 print(f"  Error training {name}: {e}")
@@ -211,14 +211,14 @@ class NBAProjectionModel:
         # Ensemble prediction
         ensemble_pred = np.mean(predictions)
         
-        # Calculate confidence from model R² scores
+        # Calculate confidence from model R^2 scores
         avg_r2 = np.mean([self.model_scores.get(name, 0.8) for name in model_names])
         
         # Also factor in model agreement
         pred_std = np.std(predictions)
         agreement_factor = 1 - min(pred_std / ensemble_pred, 0.3) if ensemble_pred > 0 else 0.85
         
-        # Combined confidence: 70% from R², 30% from agreement
+        # Combined confidence: 70% from R^2, 30% from agreement
         confidence = (avg_r2 * 0.7 + agreement_factor * 0.3) * 100
         confidence = min(99, max(60, confidence))  # Between 60-99%
         
