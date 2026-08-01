@@ -59,7 +59,3 @@ The app launches at `http://localhost:7860`.
 ```bash
 pytest
 ```
-
-### To-Do List
-- [ ] Use Scrapling to pull game context info
-- [ ] Allow users to enter opponent information so users can analyze players in future games
