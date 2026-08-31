@@ -48,7 +48,7 @@ from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from features import build_feature_dataset, FEATURE_COLUMNS
+from features import build_feature_dataset, nba_season, FEATURE_COLUMNS
 from model import NBAProjectionModel, get_player_position
 
 GAMELOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cached_player_gamelogs.csv')
@@ -263,13 +263,24 @@ def noise_floor_analysis(gamelog_df, test_df):
       - test-period mean: knows each player's average over the test games
     """
     df = gamelog_df.copy()
-    within_player_std = df.groupby('PLAYER_NAME')['PTS'].std()
-    counts = df.groupby('PLAYER_NAME')['PTS'].size()
-    within_player_std = within_player_std[counts >= 6]
+    df['season'] = nba_season(pd.to_datetime(df['GAME_DATE'], format='mixed', errors='coerce'))
 
-    full_season_mean = df.groupby('PLAYER_NAME')['PTS'].mean()
-    oracle_full = test_df['player'].map(full_season_mean).fillna(full_season_mean.mean())
-    oracle_test = test_df.groupby('player')['actual_pts'].transform('mean')
+    # Group by (player, season), not player: averaging a player across several
+    # seasons is not an oracle at all -- their form two years ago says little
+    # about this season, so a career-wide mean can score WORSE than the naive
+    # baseline and make headroom look negative.
+    by_player_season = df.groupby(['PLAYER_NAME', 'season'])['PTS']
+    within_player_std = by_player_season.std()[by_player_season.size() >= 6]
+    full_season_mean = by_player_season.mean()
+
+    if 'season' in test_df.columns:
+        keys = pd.MultiIndex.from_arrays([test_df['player'], test_df['season']])
+        oracle_full = pd.Series(full_season_mean.reindex(keys).to_numpy(), index=test_df.index)
+        oracle_test = test_df.groupby(['player', 'season'])['actual_pts'].transform('mean')
+    else:  # single-season logs: player alone is already the right key
+        oracle_full = test_df['player'].map(full_season_mean.droplevel('season'))
+        oracle_test = test_df.groupby('player')['actual_pts'].transform('mean')
+    oracle_full = oracle_full.fillna(full_season_mean.mean())
 
     return {
         'mean_within_player_std': within_player_std.mean(),
