@@ -947,7 +947,7 @@ if __name__ == "__main__":
     target_options = ['Points', 'Rebounds', 'Assists']
     target_choice = 'Points'  # Change this to predict different stats
     
-    print("🏀 NBA Player Projection System")
+    print("NBA Player Projection System")
     print("Using Multiple ML Models: Linear, Bayesian, Random Forest, XGBoost, LightGBM, Neural Networks")
     print("="*70)
     
