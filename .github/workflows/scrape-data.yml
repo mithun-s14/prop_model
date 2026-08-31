@@ -58,12 +58,6 @@ jobs:
         cd backend
         python last15_scraper.py
 
-    - name: Run NBA odds scraper (spreads & totals)
-      continue-on-error: true
-      run: |
-        cd backend
-        python odds_scraper.py
-
     - name: Commit and push if changed
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
