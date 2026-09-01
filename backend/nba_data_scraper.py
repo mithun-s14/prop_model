@@ -214,9 +214,9 @@ def scrape_all_teams(current_dir):
         })
 
     df = pd.DataFrame(all_teams)
-    df.to_csv(os.path.join(current_dir, 'cached_all_teams.csv'), index=False)
+    df.to_csv(os.path.join(current_dir, 'data', 'cached_all_teams.csv'), index=False)
 
-    with open(os.path.join(current_dir, 'cached_all_teams.json'), 'w') as f:
+    with open(os.path.join(current_dir, 'data', 'cached_all_teams.json'), 'w') as f:
         json.dump(all_teams, f)
 
     print(f"Cached {len(all_teams)} teams")
@@ -271,12 +271,12 @@ def scrape_active_players_from_rosters(current_dir, season=2026):
             continue
 
     pd.DataFrame(player_info_list).to_csv(
-        os.path.join(current_dir, 'cached_player_info.csv'), index=False
+        os.path.join(current_dir, 'data', 'cached_player_info.csv'), index=False
     )
     df_players = pd.DataFrame(active_players)
-    df_players.to_csv(os.path.join(current_dir, 'cached_all_players.csv'), index=False)
+    df_players.to_csv(os.path.join(current_dir, 'data', 'cached_all_players.csv'), index=False)
 
-    with open(os.path.join(current_dir, 'cached_all_players.json'), 'w') as f:
+    with open(os.path.join(current_dir, 'data', 'cached_all_players.json'), 'w') as f:
         json.dump(active_players, f)
 
     print(f"Cached {len(active_players)} active players from team rosters")
@@ -288,8 +288,8 @@ def scrape_todays_games(current_dir, all_games):
     print("Scraping today's games...")
     today = datetime.now().strftime("%Y-%m-%d")
 
-    csv_path = os.path.join(current_dir, 'cached_todays_games.csv')
-    json_path = os.path.join(current_dir, 'cached_todays_games.json')
+    csv_path = os.path.join(current_dir, 'data', 'cached_todays_games.csv')
+    json_path = os.path.join(current_dir, 'data', 'cached_todays_games.json')
 
     try:
 
@@ -341,10 +341,10 @@ def scrape_todays_games(current_dir, all_games):
 
 def load_cached_players(current_dir):
     """Load active_players and player_info_list from cached CSV files"""
-    df_players = pd.read_csv(os.path.join(current_dir, 'cached_all_players.csv'))
+    df_players = pd.read_csv(os.path.join(current_dir, 'data', 'cached_all_players.csv'))
     active_players = df_players.to_dict('records')
 
-    df_info = pd.read_csv(os.path.join(current_dir, 'cached_player_info.csv'))
+    df_info = pd.read_csv(os.path.join(current_dir, 'data', 'cached_player_info.csv'))
     player_info_list = df_info.to_dict('records')
 
     print(f"Loaded {len(active_players)} active players from cache")
@@ -381,7 +381,7 @@ def main():
         'season': current_season,
         'source': 'Basketball Reference (Scrapling)',
     }
-    with open(os.path.join(current_dir, 'cache_metadata.json'), 'w') as f:
+    with open(os.path.join(current_dir, 'data', 'cache_metadata.json'), 'w') as f:
         json.dump(metadata, f, indent=2)
 
     elapsed = time.time() - start_time

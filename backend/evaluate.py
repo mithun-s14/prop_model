@@ -16,7 +16,7 @@ import os
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
 
-GAMELOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cached_player_gamelogs.csv')
+GAMELOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'cached_player_gamelogs.csv')
 
 
 def compute_predictions(gamelog_df, target_col='PTS', player_col='PLAYER_NAME',

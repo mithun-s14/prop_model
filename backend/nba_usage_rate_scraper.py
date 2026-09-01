@@ -49,7 +49,7 @@ def save_usage_data(usage_df):
         return None
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(current_dir, 'nba_usage_rates_latest.csv')
+    csv_path = os.path.join(current_dir, 'data', 'nba_usage_rates_latest.csv')
     usage_df.to_csv(csv_path, index=False)
     print(f"Saved to '{csv_path}'")
     return 'nba_usage_rates_latest.csv'

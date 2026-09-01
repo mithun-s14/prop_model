@@ -13,7 +13,7 @@ from model import create_complete_prediction
 STAT_MAP = {"Points": "Points", "Assists": "Assists", "Rebounds": "Rebounds"}
 
 # Load player names for autocomplete
-_players_csv = os.path.join(os.path.dirname(__file__), 'backend', 'cached_all_players.csv')
+_players_csv = os.path.join(os.path.dirname(__file__), 'backend', 'data', 'cached_all_players.csv')
 _players_df = pd.read_csv(_players_csv)
 ALL_PLAYER_NAMES = sorted(_players_df['full_name'].dropna().tolist())
 
