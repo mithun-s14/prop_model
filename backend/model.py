@@ -17,6 +17,9 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
+# All CSV/JSON/Excel data files live in backend/data/
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+
 class NBAProjectionModel:
     def __init__(self):
         self.models = {}
@@ -237,7 +240,7 @@ def get_player_info(player_name):
     """
     try:
         # Load cached player info
-        player_info_df = pd.read_csv('backend/cached_player_info.csv')
+        player_info_df = pd.read_csv(os.path.join(DATA_DIR, 'cached_player_info.csv'))
         
         # Clean player name for matching (strip accents so é/č/ć etc. match ASCII)
         player_name_clean = _strip_accents(player_name).upper().strip()
@@ -294,11 +297,11 @@ def get_all_players_cached():
     Get all players from cache (replaces players.get_players())
     """
     try:
-        with open('backend/cached_all_players.json', 'r') as f:
+        with open(os.path.join(DATA_DIR, 'cached_all_players.json'), 'r') as f:
             return json.load(f)
     except:
         # Fallback to CSV
-        df = pd.read_csv('backend/cached_all_players.csv')
+        df = pd.read_csv(os.path.join(DATA_DIR, 'cached_all_players.csv'))
         return df.to_dict('records')
 
 def get_player_position(player_name):
@@ -308,7 +311,7 @@ def get_player_position(player_name):
     """
     player_positions = {}
     try:
-        with open("backend/players_positions.csv", "r", encoding="utf-8") as f:
+        with open(os.path.join(DATA_DIR, "players_positions.csv"), "r", encoding="utf-8") as f:
             reader = csv.reader(f)
             next(reader, None)  # Skip header row (Player,Position)
             for row in reader:
@@ -326,7 +329,7 @@ def get_player_position(player_name):
 
     # Fallback: get position from cached_player_info.csv (BBRef roster data)
     try:
-        player_info_df = pd.read_csv('backend/cached_player_info.csv')
+        player_info_df = pd.read_csv(os.path.join(DATA_DIR, 'cached_player_info.csv'))
         names_norm = player_info_df['player_name'].apply(
             lambda x: _strip_accents(str(x)).upper() if isinstance(x, str) else ''
         )
@@ -401,7 +404,7 @@ def load_latest_usage_data():
     Load the latest usage data from CSV file
     """
     try:
-        csv_file = 'backend/nba_usage_rates_latest.csv'
+        csv_file = os.path.join(DATA_DIR, 'nba_usage_rates_latest.csv')
         if os.path.exists(csv_file):
             # Check if file less than 24 hours old
             file_time = datetime.fromtimestamp(os.path.getmtime(csv_file))
@@ -430,7 +433,7 @@ def fetch_recent_gamelog(player_id, team_abbr, retries=1):
         print(f"Loading game logs from cache for player {player_id}...")
 
         # Load cached game logs
-        gamelogs_df = pd.read_csv('backend/cached_player_gamelogs.csv')
+        gamelogs_df = pd.read_csv(os.path.join(DATA_DIR, 'cached_player_gamelogs.csv'))
 
         # Try matching by Player_ID first (works if both are same format)
         player_logs = gamelogs_df[gamelogs_df['Player_ID'].astype(str) == str(player_id)]
@@ -438,7 +441,7 @@ def fetch_recent_gamelog(player_id, team_abbr, retries=1):
         # Fallback: match by PLAYER_NAME if Player_ID format differs (BBRef vs nba_api)
         if player_logs.empty and 'PLAYER_NAME' in gamelogs_df.columns:
             try:
-                player_info_df = pd.read_csv('backend/cached_player_info.csv')
+                player_info_df = pd.read_csv(os.path.join(DATA_DIR, 'cached_player_info.csv'))
                 player_row = player_info_df[player_info_df['player_id'].astype(str) == str(player_id)]
                 if not player_row.empty:
                     player_name = player_row.iloc[0]['player_name']
@@ -531,7 +534,7 @@ def get_player_team_id(player_id):
     Get team ID for a player from cached data
     """
     try:
-        player_info_df = pd.read_csv('backend/cached_player_info.csv')
+        player_info_df = pd.read_csv(os.path.join(DATA_DIR, 'cached_player_info.csv'))
         player_row = player_info_df[player_info_df['player_id'].astype(str) == str(player_id)]
         
         if not player_row.empty:
@@ -552,7 +555,7 @@ def get_team_schedule(team_id):
         today = datetime.now().strftime("%Y-%m-%d")
 
         # Load cached games
-        games_df = pd.read_csv('backend/cached_todays_games.csv')
+        games_df = pd.read_csv(os.path.join(DATA_DIR, 'cached_todays_games.csv'))
 
         if games_df.empty:
             print(f"No games scheduled for today")
@@ -566,7 +569,7 @@ def get_team_schedule(team_id):
         # Fallback: match by full team name
         if game.empty and 'home_team' in games_df.columns and 'visitor_team' in games_df.columns:
             try:
-                teams_df = pd.read_csv('backend/cached_all_teams.csv')
+                teams_df = pd.read_csv(os.path.join(DATA_DIR, 'cached_all_teams.csv'))
                 team_row = teams_df[teams_df['id'] == team_id]
                 if not team_row.empty:
                     team_full_name = team_row.iloc[0]['full_name']
@@ -585,7 +588,7 @@ def get_team_schedule(team_id):
 
             # If IDs are missing/NaN, derive from team names
             if pd.isna(home_team_id) or pd.isna(visitor_team_id):
-                teams_df = pd.read_csv('backend/cached_all_teams.csv')
+                teams_df = pd.read_csv(os.path.join(DATA_DIR, 'cached_all_teams.csv'))
                 name_to_id = dict(zip(teams_df['full_name'], teams_df['id']))
                 if pd.isna(home_team_id):
                     home_team_id = name_to_id.get(game_info.get('home_team'), 0)
@@ -647,7 +650,7 @@ def get_tonights_game_context(player_name, spread, total):
     
     # Get opponent abbreviation from cached teams
     try:
-        teams_df = pd.read_csv('backend/cached_all_teams.csv')
+        teams_df = pd.read_csv(os.path.join(DATA_DIR, 'cached_all_teams.csv'))
         opponent_row = teams_df[teams_df['id'] == opponent_team_id]
         
         if not opponent_row.empty:
@@ -671,8 +674,7 @@ def get_cached_defense_data():
     """
     Get defense data from Excel file with multiple sheets
     """
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    excel_file = os.path.join(current_dir, 'nba_defense_data.xlsx')
+    excel_file = os.path.join(DATA_DIR, 'nba_defense_data.xlsx')
     
     try:
         if os.path.exists(excel_file):

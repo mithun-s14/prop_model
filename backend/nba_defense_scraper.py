@@ -94,8 +94,9 @@ def export_to_excel(positions_data, filename='nba_defense_data.xlsx'):
     Export data to Excel with separate sheets for each position.
     """
     try:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        filepath = os.path.join(current_dir, filename)
+        data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        filepath = os.path.join(data_dir, filename)
 
         with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
             for position, df in positions_data.items():

@@ -37,7 +37,7 @@ from model import (
     get_opponent_defense_stats,
 )
 
-GAMELOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cached_player_gamelogs.csv')
+GAMELOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'cached_player_gamelogs.csv')
 
 NEUTRAL_SPREAD = 0
 NEUTRAL_TOTAL = 225.0

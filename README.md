@@ -42,6 +42,19 @@ The app launches at `http://localhost:7860`.
 3. Set the game spread and total
 4. Click **Generate Prediction** to see ensemble and individual model results
 
+## Project Structure
+
+```
+app.py                  Gradio entry point
+backend/
+  data/                 All cached data files (CSV / JSON / Excel)
+  *.py                  Scrapers, feature engineering, models
+  tests/                Pytest suite
+frontend/               React UI
+```
+
+All scrapers write into `backend/data/`, and every loader reads from it.
+
 ## Running Tests
 
 ```bash

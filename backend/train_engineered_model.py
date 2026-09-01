@@ -51,7 +51,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from features import build_feature_dataset, nba_season, FEATURE_COLUMNS
 from model import NBAProjectionModel, get_player_position
 
-GAMELOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cached_player_gamelogs.csv')
+GAMELOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'cached_player_gamelogs.csv')
 
 # Thematic groups of features, the unit of greedy selection. Selecting whole
 # blocks rather than individual columns keeps the search small enough that it

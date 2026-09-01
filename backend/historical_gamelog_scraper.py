@@ -36,9 +36,9 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_PATH = os.path.join(BACKEND_DIR, 'cached_player_gamelogs.csv')
-BACKFILL_PATH = os.path.join(BACKEND_DIR, 'historical_player_gamelogs.csv')
-CHECKPOINT_PATH = os.path.join(BACKEND_DIR, '.historical_scrape_checkpoint.json')
+CACHE_PATH = os.path.join(BACKEND_DIR, 'data', 'cached_player_gamelogs.csv')
+BACKFILL_PATH = os.path.join(BACKEND_DIR, 'data', 'historical_player_gamelogs.csv')
+CHECKPOINT_PATH = os.path.join(BACKEND_DIR, 'data', '.historical_scrape_checkpoint.json')
 
 BASE_URL = 'https://www.basketball-reference.com'
 DEFAULT_DELAY = 3.5  # seconds; Basketball Reference allows ~20 req/min
