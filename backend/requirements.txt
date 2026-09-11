@@ -11,3 +11,8 @@ gunicorn==21.2.0
 openpyxl==3.1.2
 lxml==5.1.0
 scrapling[fetchers]
+# scrapling[fetchers] does not reliably pull these in; without them its
+# imports fail at runtime and the scrapers silently return no rows.
+msgspec
+patchright
+browserforge

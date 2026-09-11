@@ -104,9 +104,12 @@ class TestGetPlayerPosition:
 
     @patch('builtins.open', side_effect=FileNotFoundError)
     @patch('model.pd.read_csv', side_effect=Exception("no file"))
-    def test_defaults_to_sg_on_failure(self, mock_csv, mock_file):
+    def test_returns_unk_on_failure(self, mock_csv, mock_file):
+        # Was 'SG'. A hardcoded default is a silent wrong answer for every miss,
+        # and position feeds opponent-defense features and draft eligibility.
+        # 'UNK' is visible; a plausible-looking 'SG' is not.
         result = get_player_position('Unknown Player')
-        assert result == 'SG'
+        assert result == 'UNK'
 
 
 # calculate_usage_rate
