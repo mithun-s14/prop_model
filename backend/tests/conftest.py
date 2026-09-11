@@ -180,3 +180,76 @@ def sample_player_features():
         'blk_roll_avg': 0.9,
         'tov_roll_avg': 3.1,
     }
+
+
+# ---------------------------------------------------------------------------
+# Season-projection fixtures (season_features.py / train_season_model.py)
+# ---------------------------------------------------------------------------
+
+def make_player_season(name, season, n_games, pts=20, reb=5, ast=4, stl=1, blk=1,
+                       fg3m=2, tov=2, minutes=30, fgm=8, fga=17, ftm=4, fta=5,
+                       fg3a=6, team='LAL', player_id=None, start_month=11):
+    """
+    One player's game log for one season, with constant per-game values.
+
+    Constant values make hand-computed expectations trivial: the season average
+    of every stat is just the value passed in. `season` is the NBA end-year, so
+    season=2025 means the 2024-25 season and games are dated in Nov 2024.
+    """
+    year = season - 1 if start_month >= 10 else season
+    dates = pd.date_range(f'{year}-{start_month:02d}-01', periods=n_games, freq='2D')
+    return pd.DataFrame({
+        'PLAYER_NAME': [name] * n_games,
+        'Player_ID': [player_id or name.lower().replace(' ', '')[:8]] * n_games,
+        'GAME_DATE': [d.strftime('%a, %b %d, %Y') for d in dates],
+        'team': [team] * n_games,
+        'game_id': [f'{d:%Y%m%d}0{team}' for d in dates],
+        'MIN': [minutes] * n_games,
+        'FGM': [fgm] * n_games, 'FGA': [fga] * n_games,
+        'FG3M': [fg3m] * n_games, 'FG3A': [fg3a] * n_games,
+        'FTM': [ftm] * n_games, 'FTA': [fta] * n_games,
+        'REB': [reb] * n_games, 'AST': [ast] * n_games,
+        'STL': [stl] * n_games, 'BLK': [blk] * n_games,
+        'TOV': [tov] * n_games, 'PTS': [pts] * n_games,
+    })
+
+
+@pytest.fixture
+def multi_season_gamelog():
+    """
+    Three seasons (2024, 2025, 2026) for four players with distinct profiles:
+      Steady Sam    -- same team, same production all three seasons
+      Rising Rick   -- improves each season
+      Moving Mike   -- changes teams between 2025 and 2026
+      Short Steve   -- only 18 games in 2026 (below the feature threshold)
+    """
+    frames = [
+        make_player_season('Steady Sam', 2024, 70, pts=20, team='LAL'),
+        make_player_season('Steady Sam', 2025, 70, pts=20, team='LAL'),
+        make_player_season('Steady Sam', 2026, 70, pts=20, team='LAL'),
+        make_player_season('Rising Rick', 2024, 60, pts=10, minutes=20, team='BOS'),
+        make_player_season('Rising Rick', 2025, 65, pts=15, minutes=28, team='BOS'),
+        make_player_season('Rising Rick', 2026, 68, pts=22, minutes=34, team='BOS'),
+        make_player_season('Moving Mike', 2025, 55, pts=18, team='MIA'),
+        make_player_season('Moving Mike', 2026, 58, pts=16, team='DEN'),
+        make_player_season('Short Steve', 2025, 40, pts=12, team='NYK'),
+        make_player_season('Short Steve', 2026, 18, pts=9, team='NYK'),
+    ]
+    return pd.concat(frames, ignore_index=True)
+
+
+@pytest.fixture
+def season_player_info():
+    """Player info for the multi_season_gamelog players, one deliberately absent."""
+    return pd.DataFrame({
+        'player_id': ['steadysa', 'risingri', 'movingmi'],   # Short Steve missing on purpose
+        'player_name': ['Steady Sam', 'Rising Rick', 'Moving Mike'],
+        'birth_date': ['June 1, 1995', 'March 15, 2000', 'January 20, 1992'],
+        'experience': ['8', 'R', '12'],
+    })
+
+
+@pytest.fixture
+def season_positions():
+    """Position map including whitespace-corrupted values, as the real CSV has."""
+    return {'Steady Sam': 'PG', 'Rising Rick': ' SG', 'Moving Mike': 'C'}

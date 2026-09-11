@@ -312,11 +312,16 @@ def get_player_position(player_name):
     player_positions = {}
     try:
         with open(os.path.join(DATA_DIR, "players_positions.csv"), "r", encoding="utf-8") as f:
-            reader = csv.reader(f)
-            next(reader, None)  # Skip header row (Player,Position)
+            # Read by HEADER NAME, not column index. nba_position_scraper.py
+            # writes a player_id column ahead of Player, and positional access
+            # (row[0], row[1]) would silently start reading ids as names.
+            reader = csv.DictReader(f)
             for row in reader:
-                if len(row) >= 2:
-                    name, position = row[0], row[1]
+                # The CSV carries ' PF' and ' PG' with leading spaces, which
+                # would otherwise yield 7 distinct values for 5 positions.
+                name = (row.get('Player') or '').strip()
+                position = (row.get('Position') or '').strip()
+                if name and position:
                     player_positions[name] = position
     except FileNotFoundError:
         pass
@@ -334,9 +339,12 @@ def get_player_position(player_name):
             lambda x: _strip_accents(str(x)).upper() if isinstance(x, str) else ''
         )
         match = player_info_df[names_norm == player_name_norm]
-        if match.empty:
-            last_name = player_name_norm.split()[-1]
-            match = player_info_df[names_norm.str.contains(last_name, na=False)]
+        # NO last-name substring fallback. It used to do
+        #     names_norm.str.contains(last_name)  ->  .iloc[0]
+        # which silently returned a DIFFERENT player: 'Killian Hayes' resolved to
+        # Jaxson Hayes, giving a guard a forward's position. A missing position
+        # is visible downstream; a confidently wrong one is not. Returning 'UNK'
+        # is strictly better than guessing a stranger's position.
         if not match.empty:
             pos = str(match.iloc[0]['position'])
             # BBRef positions may be multi-position like "SG-SF"; take primary
@@ -347,8 +355,8 @@ def get_player_position(player_name):
     except Exception:
         pass
 
-    print(f"Warning: Could not find position for {player_name}, defaulting to SG")
-    return 'SG'
+    print(f"Warning: Could not find position for {player_name}, returning UNK")
+    return 'UNK'
 
 def calculate_usage_rate(player_name):
     """

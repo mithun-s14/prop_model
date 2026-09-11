@@ -1,0 +1,112 @@
+player_name,player_id,new_team,change_type,role_change,min_override,status,note,source,updated
+AJ Johnson,johnsaj01,MEM,trade,unknown,,active,WAS -> MEM,markdowns/roster_moves.md,2026-07-08
+Aaron Wiggins,wiggiaa01,ATL,trade,unknown,,active,OKC -> ATL,markdowns/roster_moves.md,2026-07-06
+Andre Drummond,drumman01,NYK,free_agency,unknown,,active,PHI -> NYK,markdowns/roster_moves.md,2026-07-06
+Andre Jackson Jr.,jacksan01,TOR,free_agency,unknown,,active,MIL -> TOR,markdowns/roster_moves.md,2026-08-04
+Anfernee Simons,simonan01,PHI,free_agency,unknown,,active,BOS -> PHI,markdowns/roster_moves.md,2026-07-06
+Ariel Hukporti,hukpoar01,PHI,free_agency,unknown,,active,NYK -> PHI,markdowns/roster_moves.md,2026-07-06
+Ayo Dosunmu,dosunay01,MIN,free_agency,unknown,,active,CHI -> MIN,markdowns/roster_moves.md,2026-07-10
+Bobby Portis,portibo01,MIA,trade,unknown,,active,MIL -> MIA,markdowns/roster_moves.md,2026-07-06
+Bogdan Bogdanović,bogdabo01,HOU,free_agency,unknown,,active,LAC -> HOU,markdowns/roster_moves.md,2026-07-08
+Branden Carlson,carlsbr01,POR,free_agency,unknown,,active,OKC -> POR,markdowns/roster_moves.md,2026-07-01
+Brandon Williams,willibr03,GSW,free_agency,unknown,,active,DAL -> GSW,markdowns/roster_moves.md,2026-08-26
+Caleb Love,loveca01,PHI,free_agency,unknown,,active,POR -> PHI,markdowns/roster_moves.md,2026-07-05
+Cam Whitmore,whitmca01,FA,waived,smaller,,active,"waived, unsigned as of 2026-09-09; unsigned in September -> reduced role",markdowns/roster_moves.md,2026-08-28
+Caris LeVert,leverca01,MIL,trade,unknown,,active,DET -> MIL,markdowns/roster_moves.md,2026-07-08
+Christian Koloko,kolokch01,NOP,free_agency,unknown,,active,ATL -> NOP,markdowns/roster_moves.md,2026-07-28
+Coby White,whiteco01,CHO,free_agency,unknown,,active,CHI -> CHO,markdowns/roster_moves.md,2026-07-06
+Collin Sexton,sextoco01,LAL,free_agency,unknown,,active,CHO -> LAL,markdowns/roster_moves.md,2026-07-11
+D'Angelo Russell,russeda01,MEM,trade,unknown,,active,DAL -> MEM,markdowns/roster_moves.md,2026-07-08
+Dalen Terry,terryda01,GSW,free_agency,unknown,,active,CHI -> GSW,markdowns/roster_moves.md,2026-08-27
+DeMar DeRozan,derozde01,DEN,free_agency,same,,active,SAC -> DEN; 31.2 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-09-08
+Dean Wade,wadede01,PHI,free_agency,unknown,,active,CLE -> PHI,markdowns/roster_moves.md,2026-07-06
+Deandre Ayton,aytonde01,WAS,trade,unknown,,active,LAL -> WAS,markdowns/roster_moves.md,2026-07-07
+Dennis Schröder,schrode01,CHO,trade,unknown,,active,SAC -> CHO,markdowns/roster_moves.md,2026-08-20
+Devin Carter,cartede02,ATL,trade,unknown,,active,SAC -> ATL,markdowns/roster_moves.md,2026-06-30
+Dorian Finney-Smith,finnedo01,CHO,trade,unknown,,active,HOU -> CHO,markdowns/roster_moves.md,2026-07-06
+Elijah Harkless,harklej01,DET,free_agency,unknown,,active,UTA -> DET,markdowns/roster_moves.md,2026-07-08
+Ethan Thompson,thompet01,FA,waived,smaller,,active,"waived, unsigned as of 2026-09-09; unsigned in September -> reduced role",markdowns/roster_moves.md,2026-08-13
+Gary Harris,harriga01,DET,trade,unknown,,active,MIL -> DET,markdowns/roster_moves.md,2026-07-08
+Giannis Antetokounmpo,antetgi01,MIA,trade,unknown,,active,MIL -> MIA,markdowns/roster_moves.md,2026-07-06
+Grayson Allen,allengr01,CHO,trade,unknown,,active,PHO -> CHO,markdowns/roster_moves.md,2026-07-13
+Isaiah Joe,joeis01,DET,trade,unknown,,active,OKC -> DET,markdowns/roster_moves.md,2026-07-06
+Isaiah Stewart,stewais01,MEM,trade,unknown,,active,DET -> MEM,markdowns/roster_moves.md,2026-07-08
+JD Davison,davisjd01,ORL,free_agency,unknown,,active,HOU -> ORL,markdowns/roster_moves.md,2026-09-03
+Ja Morant,moranja01,POR,trade,unknown,,active,MEM -> POR,markdowns/roster_moves.md,2026-06-29
+Jaden Hardy,hardyja02,LAL,trade,unknown,,active,DAL -> LAL,markdowns/roster_moves.md,2026-07-07
+Jaime Jaquez Jr.,jaqueja01,MIL,trade,unknown,,active,MIA -> MIL,markdowns/roster_moves.md,2026-07-06
+Jalen Pickett,pickeja02,LAC,free_agency,unknown,,active,DEN -> LAC,markdowns/roster_moves.md,2026-08-12
+Jalen Wilson,wilsoja03,ATL,free_agency,unknown,,active,BRK -> ATL,markdowns/roster_moves.md,2026-07-22
+James Harden,hardeja01,CLE,free_agency,same,,active,LAC -> CLE; 34.8 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-09-08
+Jaxson Hayes,hayesja02,UTA,free_agency,unknown,,active,LAL -> UTA,markdowns/roster_moves.md,2026-07-09
+Jaylen Brown,brownja02,PHI,trade,same,,active,BOS -> PHI; 34.4 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-07-06
+Jerami Grant,grantje01,MEM,trade,unknown,,active,POR -> MEM,markdowns/roster_moves.md,2026-06-29
+Jeremy Sochan,sochaje01,POR,free_agency,unknown,,active,SAS -> POR,markdowns/roster_moves.md,2026-08-02
+Jett Howard,howarje01,DAL,free_agency,unknown,,active,ORL -> DAL,markdowns/roster_moves.md,2026-07-20
+Jock Landale,landajo01,ATL,free_agency,unknown,,active,MEM -> ATL,markdowns/roster_moves.md,2026-07-10
+John Collins,collijo01,DET,trade,unknown,,active,LAC -> DET,markdowns/roster_moves.md,2026-07-08
+John Konchar,konchjo01,FA,waived,smaller,,active,"waived, unsigned as of 2026-09-09; unsigned in September -> reduced role",markdowns/roster_moves.md,2026-08-29
+Jonas Valančiūnas,valanjo01,FA,waived,smaller,,active,"waived, unsigned as of 2026-09-09; unsigned in September -> reduced role",markdowns/roster_moves.md,2026-07-08
+Jonathan Kuminga,kuminjo01,MIN,free_agency,unknown,,active,GSW -> MIN,markdowns/roster_moves.md,2026-09-03
+Jonathan Mogbo,mogbojo01,SAC,free_agency,unknown,,active,TOR -> SAC,markdowns/roster_moves.md,2026-07-02
+Jose Alvarado,alvarjo01,NYK,free_agency,unknown,,active,NOP -> NYK,markdowns/roster_moves.md,2026-07-06
+Josh Green,greenjo02,MIN,trade,unknown,,active,CHO -> MIN,markdowns/roster_moves.md,2026-07-10
+Josh Minott,minotjo01,BRK,free_agency,unknown,,active,BOS -> BRK,markdowns/roster_moves.md,2026-07-06
+Josh Okogie,okogijo01,UTA,free_agency,unknown,,active,HOU -> UTA,markdowns/roster_moves.md,2026-07-09
+Julian Phillips,phillju01,HOU,free_agency,unknown,,active,CHI -> HOU,markdowns/roster_moves.md,2026-07-24
+Julius Randle,randlju01,BRK,trade,larger,,active,MIN -> BRK; 33.0 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-07-10
+Kam Jones,joneska03,MIL,free_agency,unknown,,active,IND -> MIL,markdowns/roster_moves.md,2026-07-06
+Kasparas Jakučionis,jakucka01,MIL,trade,unknown,,active,MIA -> MIL,markdowns/roster_moves.md,2026-07-06
+Kel'el Ware,wareke01,MIL,trade,larger,,active,MIA -> MIL,markdowns/roster_moves.md,2026-07-06
+Kelly Oubre Jr.,oubreke01,IND,free_agency,same,,active,PHI -> IND; 31.5 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-07-07
+Kentavious Caldwell-Pope,caldwke01,PHI,free_agency,unknown,,active,MEM -> PHI,markdowns/roster_moves.md,2026-08-05
+Keon Ellis,elliske01,BRK,free_agency,unknown,,active,SAC -> BRK,markdowns/roster_moves.md,2026-07-06
+Kevin Huerter,huertke01,DET,free_agency,unknown,,active,CHI -> DET,markdowns/roster_moves.md,2026-07-09
+Kevon Looney,looneke01,LAL,free_agency,unknown,,active,NOP -> LAL,markdowns/roster_moves.md,2026-07-12
+Klay Thompson,thompkl01,MIA,free_agency,unknown,,active,DAL -> MIA,markdowns/roster_moves.md,2026-08-23
+Kobe Brown,brownko01,IND,free_agency,unknown,,active,LAC -> IND,markdowns/roster_moves.md,2026-07-09
+Kris Murray,murrakr01,MEM,trade,unknown,,active,POR -> MEM,markdowns/roster_moves.md,2026-06-29
+Kristaps Porziņģis,porzikr01,GSW,re_signed,unknown,,active,extension with GSW; move from ATL predates this log,markdowns/roster_moves.md,2026-06-30
+Kyle Anderson,anderky01,TOR,free_agency,unknown,,active,UTA -> TOR,markdowns/roster_moves.md,2026-07-06
+LaMelo Ball,ballla01,MIN,trade,unknown,,active,CHO -> MIN,markdowns/roster_moves.md,2026-07-10
+Larry Nance Jr.,nancela02,IND,free_agency,unknown,,active,CLE -> IND,markdowns/roster_moves.md,2026-07-09
+LeBron James,jamesle01,PHI,free_agency,same,,active,LAL -> PHI; 33.2 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-07-26
+Luguentz Dort,dortlu01,ATL,trade,unknown,,active,OKC -> ATL,markdowns/roster_moves.md,2026-07-19
+Luke Kennard,kennalu01,PHO,free_agency,unknown,,active,ATL -> PHO,markdowns/roster_moves.md,2026-07-14
+Malaki Branham,branhma01,ORL,free_agency,unknown,,active,WAS -> ORL,markdowns/roster_moves.md,2026-09-03
+Marcus Sasser,sassema01,DAL,trade,unknown,,active,DET -> DAL,markdowns/roster_moves.md,2026-07-08
+Marcus Smart,smartma01,HOU,free_agency,unknown,,active,LAL -> HOU,markdowns/roster_moves.md,2026-07-10
+Marvin Bagley III,baglema01,DEN,free_agency,unknown,,active,WAS -> DEN,markdowns/roster_moves.md,2026-07-15
+Matisse Thybulle,thybuma01,LAL,free_agency,unknown,,active,POR -> LAL,markdowns/roster_moves.md,2026-07-27
+Micah Potter,pottemi01,POR,trade,unknown,,active,"claimed on waivers, IND -> POR",markdowns/roster_moves.md,2026-07-10
+Mike Conley,conlemi01,BOS,free_agency,unknown,,active,MIN -> BOS,markdowns/roster_moves.md,2026-07-06
+Miles Bridges,bridgmi02,PHO,trade,same,,active,CHO -> PHO; 31.0 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-07-13
+Mitchell Robinson,robinmi01,BOS,free_agency,unknown,,active,NYK -> BOS,markdowns/roster_moves.md,2026-07-06
+Naz Reid,reidna01,CHO,trade,unknown,,active,MIN -> CHO,markdowns/roster_moves.md,2026-07-10
+Nic Claxton,claxtni01,CHI,trade,unknown,,active,BRK -> CHI,markdowns/roster_moves.md,2026-07-10
+Nick Richards,richani01,MIA,free_agency,unknown,,active,PHO -> MIA,markdowns/roster_moves.md,2026-08-27
+Nikola Vučević,vucevni01,ORL,free_agency,unknown,,active,CHI -> ORL,markdowns/roster_moves.md,2026-07-01
+Norman Powell,powelno01,CHI,free_agency,unknown,,active,MIA -> CHI,markdowns/roster_moves.md,2026-07-10
+Oscar Tshiebwe,tshieos01,HOU,free_agency,unknown,,active,UTA -> HOU,markdowns/roster_moves.md,2026-07-23
+Pat Spencer,spencpa01,PHO,free_agency,unknown,,active,GSW -> PHO,markdowns/roster_moves.md,2026-07-03
+Paul George,georgpa01,BOS,trade,same,,active,PHI -> BOS; 30.7 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-07-06
+Peyton Watson,watsope01,CLE,trade,unknown,,active,DEN -> CLE,markdowns/roster_moves.md,2026-08-20
+Quentin Grimes,grimequ01,LAL,free_agency,unknown,,active,PHI -> LAL,markdowns/roster_moves.md,2026-07-07
+Quinten Post,postqu01,MEM,free_agency,unknown,,active,GSW -> MEM,markdowns/roster_moves.md,2026-07-08
+Rayan Rupert,ruperra01,PHI,free_agency,unknown,,active,POR -> PHI,markdowns/roster_moves.md,2026-07-08
+Royce O'Neale,onealro01,CHO,trade,unknown,,active,PHO -> CHO,markdowns/roster_moves.md,2026-07-13
+Rui Hachimura,hachiru01,LAC,free_agency,unknown,,active,LAL -> LAC,markdowns/roster_moves.md,2026-07-06
+Russell Westbrook,westbru01,SAC,retired,unknown,,retired,announced retirement,markdowns/roster_moves.md,2026-08-12
+Ryan Nembhard,nembhry01,ATL,trade,unknown,,active,DAL -> ATL,markdowns/roster_moves.md,2026-07-19
+Sandro Mamukelashvili,mamuksa01,LAL,free_agency,unknown,,active,TOR -> LAL,markdowns/roster_moves.md,2026-07-07
+Santi Aldama,aldamsa01,DAL,trade,unknown,,active,MEM -> DAL,markdowns/roster_moves.md,2026-07-08
+Taelon Peter,peterta01,SAS,free_agency,unknown,,active,IND -> SAS,markdowns/roster_moves.md,2026-08-07
+Taurean Prince,princta02,DET,trade,unknown,,active,MIL -> DET,markdowns/roster_moves.md,2026-07-08
+Tim Hardaway Jr.,hardati02,MIA,free_agency,unknown,,active,DEN -> MIA,markdowns/roster_moves.md,2026-07-06
+Tobias Harris,harrito02,SAS,free_agency,unknown,,active,DET -> SAS,markdowns/roster_moves.md,2026-07-06
+Tre Mann,manntr01,WAS,trade,unknown,,active,CHO -> WAS,markdowns/roster_moves.md,2026-08-20
+Trendon Watford,watfotr01,NOP,free_agency,unknown,,active,PHI -> NOP,markdowns/roster_moves.md,2026-08-17
+Tyler Herro,herroty01,MIL,trade,same,,active,MIA -> MIL; 31.3 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-07-06
+Tyus Jones,jonesty01,DEN,free_agency,unknown,,active,ORL -> DEN,markdowns/roster_moves.md,2026-07-14
+Zaccharie Risacher,risacza01,DAL,trade,unknown,,active,ATL -> DAL,markdowns/roster_moves.md,2026-07-19
+Ziaire Williams,willizi02,LAL,free_agency,unknown,,active,BRK -> LAL,markdowns/roster_moves.md,2026-07-19
