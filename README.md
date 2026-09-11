@@ -1,3 +1,16 @@
+---
+title: NBA Predictive Analytics Platform
+emoji: 📊
+colorFrom: green
+colorTo: gray
+sdk: gradio
+sdk_version: 6.2.0
+python_version: "3.12"
+app_file: app.py
+pinned: false
+short_description: NBA player prop and 2026-27 season projections
+---
+
 # NBA Predictive Analytics Platform
 
 An NBA player stat prediction tool that uses an ensemble of six machine learning models to forecast Points, Assists, and Rebounds for the day's games based on given game context and historical performance data.
