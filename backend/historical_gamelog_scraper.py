@@ -62,6 +62,43 @@ _INT_COLUMNS = ['FGM', 'FGA', 'FG3M', 'FG3A', 'FTM', 'FTA',
                 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
 
 
+# Minimum plausible length of a Basketball Reference page. Anything shorter means
+# the body was not extracted (see _response_html) rather than legitimately empty.
+_MIN_HTML_LEN = 1000
+
+
+def _response_html(response):
+    """
+    Extract HTML text from a scrapling Response across library versions.
+
+    Scrapling changed shape here: `.body` is now bytes rather than str, and
+    `str(response)` is the repr `'<200 https://...>'`, not the page. The previous
+    `response.body if isinstance(..., str) else str(response)` therefore yielded
+    a 71-character repr that parsed to zero rows -- silently, since BeautifulSoup
+    is happy to find nothing in it. Prefer the decoded-text attributes, fall back
+    to decoding the raw bytes, and raise rather than return something too short
+    to be a real page.
+    """
+    for attr in ('html_content', 'text', 'content'):
+        value = getattr(response, attr, None)
+        if isinstance(value, (bytes, bytearray)):
+            value = value.decode('utf-8', errors='replace')
+        if isinstance(value, str) and len(value) >= _MIN_HTML_LEN:
+            return value
+
+    body = getattr(response, 'body', None)
+    if isinstance(body, (bytes, bytearray)):
+        body = body.decode('utf-8', errors='replace')
+    if isinstance(body, str) and len(body) >= _MIN_HTML_LEN:
+        return body
+
+    raise RuntimeError(
+        "could not extract HTML from scrapling Response "
+        f"(type={type(response).__name__}); scrapling's response API likely "
+        "changed again -- check .html_content/.text/.body"
+    )
+
+
 def _fetch(url, delay=DEFAULT_DELAY, max_retries=3):
     """GET a Basketball Reference page as HTML, rate-limited and retried."""
     from scrapling.fetchers import Fetcher
@@ -74,7 +111,7 @@ def _fetch(url, delay=DEFAULT_DELAY, max_retries=3):
                 return None  # player didn't play that season
             if response.status != 200:
                 raise RuntimeError(f"HTTP {response.status} for {url}")
-            html = response.body if isinstance(getattr(response, 'body', None), str) else str(response)
+            html = _response_html(response)
             time.sleep(delay)
             return html
         except Exception as exc:  # noqa: BLE001 - retry any transport/parse failure
