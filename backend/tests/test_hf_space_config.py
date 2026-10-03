@@ -69,8 +69,3 @@ class TestSpaceConfig:
             pinned = [l.strip() for l in fh if l.strip().startswith('gradio==')]
         assert pinned, 'requirements.txt does not pin gradio'
         assert front_matter['sdk_version'] == pinned[0].split('==', 1)[1]
-
-    def test_projection_data_files_are_tracked_for_deploy(self):
-        # The projections tab reads these at startup; they must ship with the repo.
-        for name in ('season_projections_2027.csv', 'season_projections_2027_excluded.csv'):
-            assert os.path.exists(os.path.join(REPO_ROOT, 'backend', 'data', name))

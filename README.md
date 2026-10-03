@@ -8,7 +8,7 @@ sdk_version: 6.2.0
 python_version: "3.12"
 app_file: app.py
 pinned: false
-short_description: NBA player prop and 2026-27 season projections
+short_description: NBA player prop predictions
 ---
 
 # NBA Predictive Analytics Platform
