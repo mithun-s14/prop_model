@@ -9,17 +9,6 @@ import json
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
 from model import create_complete_prediction
-from season_projections_view import (
-    ALL_POSITIONS,
-    ALL_TEAMS,
-    SORT_OPTIONS,
-    filter_projections,
-    get_position_choices,
-    get_team_choices,
-    load_excluded_players,
-    load_season_projections,
-    projections_summary,
-)
 
 STAT_MAP = {"Points": "Points", "Assists": "Assists", "Rebounds": "Rebounds"}
 
@@ -115,14 +104,8 @@ _autocomplete_head = f"""
 custom_css = """
 .gradio-container {
     background-color: #09090b !important;
-    max-width: 1280px !important;
-    margin: auto !important;
-}
-/* Keep the single-player tab at its original narrower width. */
-.input-card, .results-card {
     max-width: 900px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    margin: auto !important;
 }
 .main-header {
     text-align: center;
@@ -252,29 +235,6 @@ custom_css = """
     padding: 24px 0 !important;
 }
 footer { display: none !important; }
-.projections-card {
-    background: #18181b !important;
-    border: 1px solid #27272a !important;
-    border-radius: 16px !important;
-    padding: 24px !important;
-}
-.projections-card label {
-    color: #fff !important;
-    font-weight: 600 !important;
-}
-.projections-card table {
-    font-size: 0.85rem !important;
-}
-.projections-summary {
-    color: #a1a1aa !important;
-    font-size: 0.9rem !important;
-    padding: 4px 0 12px 0 !important;
-}
-.tab-intro {
-    color: #a1a1aa !important;
-    font-size: 0.9rem !important;
-    padding: 12px 0 4px 0 !important;
-}
 """
 
 
@@ -342,23 +302,6 @@ def predict_player_stats(player_name, target_stat, spread, total):
         return f"""<div style="color: #fca5a5; background: rgba(127,29,29,0.3); border: 1px solid #ef4444; border-radius: 8px; padding: 12px;">Error: {str(e)}</div>"""
 
 
-# Season projections data (loaded once at startup)
-PROJECTIONS_DF = load_season_projections()
-EXCLUDED_DF = load_excluded_players()
-PROJECTIONS_SUMMARY = projections_summary(PROJECTIONS_DF, EXCLUDED_DF)
-
-
-def show_projections(search, team, position, sort_by, limit):
-    return filter_projections(
-        PROJECTIONS_DF,
-        search=search,
-        team=team,
-        position=position,
-        sort_by=sort_by,
-        limit=limit,
-    )
-
-
 with gr.Blocks(css=custom_css, theme=gr.themes.Base(
     primary_hue="green",
     neutral_hue="zinc",
@@ -372,98 +315,37 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Base(
     </div>
     """)
 
-    with gr.Tabs():
-        with gr.Tab("Single Player Prediction"):
-            with gr.Group(elem_classes="input-card"):
-                with gr.Row():
-                    player_input = gr.Textbox(
-                        label="Player Name",
-                        placeholder="Start typing a name...",
-                    )
-                    stat_input = gr.Dropdown(
-                        label="Target Stat",
-                        choices=["Points", "Assists", "Rebounds"],
-                        value="Points"
-                    )
-                with gr.Row():
-                    spread_input = gr.Number(
-                        label="Spread",
-                        value=-5.5,
-                        step=0.5
-                    )
-                    total_input = gr.Number(
-                        label="Total",
-                        value=225.5,
-                        step=0.5
-                    )
-                predict_btn = gr.Button("📊 Generate Prediction", variant="primary", elem_classes="predict-btn")
-
-            output = gr.HTML(elem_classes="results-card")
-
-            predict_btn.click(
-                fn=predict_player_stats,
-                inputs=[player_input, stat_input, spread_input, total_input],
-                outputs=output
+    with gr.Group(elem_classes="input-card"):
+        with gr.Row():
+            player_input = gr.Textbox(
+                label="Player Name",
+                placeholder="Start typing a name...",
             )
-
-        with gr.Tab("2026-27 Season Projections"):
-            gr.HTML(
-                '<div class="tab-intro">Full-season per-game projections for the '
-                f'2026-27 NBA season. {PROJECTIONS_SUMMARY}</div>'
+            stat_input = gr.Dropdown(
+                label="Target Stat",
+                choices=["Points", "Assists", "Rebounds"],
+                value="Points"
             )
-
-            with gr.Group(elem_classes="projections-card"):
-                with gr.Row():
-                    proj_search = gr.Textbox(
-                        label="Search Player",
-                        placeholder="e.g. Jokic",
-                    )
-                    proj_team = gr.Dropdown(
-                        label="Team",
-                        choices=get_team_choices(PROJECTIONS_DF),
-                        value=ALL_TEAMS,
-                    )
-                    proj_position = gr.Dropdown(
-                        label="Position",
-                        choices=get_position_choices(PROJECTIONS_DF),
-                        value=ALL_POSITIONS,
-                    )
-                with gr.Row():
-                    proj_sort = gr.Dropdown(
-                        label="Sort By",
-                        choices=list(SORT_OPTIONS.keys()),
-                        value="Value",
-                    )
-                    proj_limit = gr.Slider(
-                        label="Rows Shown",
-                        minimum=10,
-                        maximum=500,
-                        step=10,
-                        value=50,
-                    )
-
-            proj_table = gr.Dataframe(
-                value=filter_projections(PROJECTIONS_DF, limit=50),
-                interactive=False,
-                wrap=False,
-                elem_classes="projections-card",
+        with gr.Row():
+            spread_input = gr.Number(
+                label="Spread",
+                value=-5.5,
+                step=0.5
             )
+            total_input = gr.Number(
+                label="Total",
+                value=225.5,
+                step=0.5
+            )
+        predict_btn = gr.Button("📊 Generate Prediction", variant="primary", elem_classes="predict-btn")
 
-            proj_inputs = [proj_search, proj_team, proj_position, proj_sort, proj_limit]
-            for component in proj_inputs:
-                component.change(
-                    fn=show_projections,
-                    inputs=proj_inputs,
-                    outputs=proj_table,
-                )
+    output = gr.HTML(elem_classes="results-card")
 
-            if not EXCLUDED_DF.empty:
-                with gr.Accordion("Excluded Players", open=False):
-                    gr.Dataframe(
-                        value=EXCLUDED_DF,
-                        interactive=False,
-                        wrap=False,
-                    )
+    predict_btn.click(
+        fn=predict_player_stats,
+        inputs=[player_input, stat_input, spread_input, total_input],
+        outputs=output
+    )
 
     gr.HTML('<div class="disclaimer">Disclaimer: Predictions are for informational purposes only and not guaranteed.</div>')
 
