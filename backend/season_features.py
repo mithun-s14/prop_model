@@ -49,6 +49,15 @@ POSITIONS_PATH = os.path.join(DATA_DIR, 'players_positions.csv')
 # factor, which a scrape interrupted mid-run does not produce.
 PARTIAL_SEASON_RATIO = 0.5
 
+# Teammates counted toward the ROSTER block's shot volume: season FGA per TEAM
+# game (~410 FGA). Training sees every departure in hindsight -- retirements,
+# G-League, unsigned -- while inference sees only moves in the roster file. Those
+# unrecorded departures are overwhelmingly low-volume players, so counting only
+# rotation players closes most of the gap: the mean team-level shift is -5.15
+# shots in training vs -0.73 at inference with no floor, -1.79 vs -0.34 at 5.0.
+# The per-season demeaning in _attach_teammate_shots removes what remains.
+ROTATION_SHOTS_PG = 5.0
+
 MIN_GP_FEATURE = 20   # enough history to profile a player
 MIN_GP_TARGET = 15    # deliberately looser -- a higher bar induces survivorship bias
 FULL_SEASON_GP = 41   # sample_weight saturates here (half a season)
@@ -89,6 +98,12 @@ SEASON_FEATURE_BLOCKS = {
     # uses it as an interval signal, which is what the measurements support.
     'CTX': ['fga_share_prev', 'pts_std_prev', 'n_teams_prev']
            + [f'pos_{p}' for p in POSITIONS],
+    # Change in teammates' shot volume between this season's roster and next
+    # season's, both valued at feature-season volume -- a star arriving cuts
+    # everyone else's shots. Uses next season's ROSTER, which is known preseason
+    # (the roster file at inference), never next season's stats. See
+    # _attach_teammate_shots.
+    'ROSTER': ['tm_shots_delta', 'tm_shots_delta_x_share'],
 }
 
 SEASON_FEATURE_COLUMNS = [c for block in SEASON_FEATURE_BLOCKS.values() for c in block]
@@ -293,7 +308,44 @@ def _attach_age(rows, player_info, season_col='target_season'):
     return rows
 
 
-def _feature_frame(seasons, feature_season_rows, player_info, target_season):
+def _shots_per_team_game(seasons):
+    """Season FGA over the season's game count -- a player's share of a team night."""
+    games = seasons.groupby('season')['gp'].transform('max')
+    return seasons['fga_sum'] / games.replace(0, np.nan)
+
+
+def _attach_teammate_shots(rows, seasons, next_team):
+    """
+    ROSTER block: how much rotation shot volume a player's teammates add or lose.
+
+    `next_team` maps (player, feature_season) -> primary team next season, NaN for
+    a player who will not play. Both rosters are valued at FEATURE-season volume,
+    so for a player who stays this is incoming minus departing teammates' shots;
+    for a mover it is new team minus old team. Demeaned per target season, so the
+    feature is relative to the league's typical turnover.
+    """
+    s = seasons.assign(shots=_shots_per_team_game(seasons).fillna(0.0))
+    s = s[s['shots'] >= ROTATION_SHOTS_PG]
+    s = s.assign(next_team=[next_team.get(k) for k in zip(s['player'], s['season'])])
+    prev_sum = s.groupby(['season', 'team'])['shots'].sum()
+    next_sum = s.dropna(subset=['next_team']).groupby(['season', 'next_team'])['shots'].sum()
+    own = s.set_index(['player', 'season'])['shots']
+
+    keys = list(zip(rows['player'], rows['feature_season']))
+    own_shots = own.reindex(keys).fillna(0.0).to_numpy()
+    row_next = [next_team.get(k) for k in keys]
+    prev = prev_sum.reindex(list(zip(rows['feature_season'], rows['team_prev']))).fillna(0.0).to_numpy()
+    nxt = next_sum.reindex(list(zip(rows['feature_season'], row_next))).fillna(0.0).to_numpy()
+    # A player in `s` is in both sums (primary team = team_prev; next team is row_next)
+    delta = (nxt - own_shots) - (prev - own_shots)
+
+    rows['tm_shots_delta'] = delta - pd.Series(delta, index=rows.index).groupby(
+        rows['target_season']).transform('mean').to_numpy()
+    rows['tm_shots_delta_x_share'] = rows['tm_shots_delta'] * rows['fga_share']
+    return rows
+
+
+def _feature_frame(seasons, feature_season_rows, player_info, target_season, next_team):
     """
     Shared feature construction for both training and inference.
 
@@ -339,6 +391,9 @@ def _feature_frame(seasons, feature_season_rows, player_info, target_season):
     rows['n_teams_prev'] = rows['n_teams']
     for pos in POSITIONS:
         rows[f'pos_{pos}'] = (rows['position'] == pos).astype(int)
+
+    # --- ROSTER ---
+    rows = _attach_teammate_shots(rows, seasons, next_team)
 
     # --- AGE ---
     rows = _attach_age(rows, player_info, season_col='target_season')
@@ -412,7 +467,11 @@ def build_season_dataset(gamelog_df, player_info=None, positions=None,
     keep_targets = ['player', 'feature_season', 'season', 'team'] + list(target_cols.values()) + ['target_gp']
     targets = targets[keep_targets].rename(columns={'season': 'target_season', 'team': 'team_next'})
 
-    rows = _feature_frame(seasons, feature_rows, player_info, target_season=None)
+    # Next season's primary team, from the logs -- training's view of the roster
+    next_team = {(p, season - 1): team
+                 for p, season, team in zip(seasons['player'], seasons['season'], seasons['team'])}
+    rows = _feature_frame(seasons, feature_rows, player_info, target_season=None,
+                          next_team=next_team)
     rows = rows.drop(columns=['target_season'])
     rows = rows.merge(targets, on=['player', 'feature_season'], how='inner')
     if rows.empty:
@@ -430,9 +489,14 @@ def build_season_dataset(gamelog_df, player_info=None, positions=None,
 
 
 def build_inference_features(gamelog_df, feature_season, player_info=None,
-                             positions=None, min_gp_feature=MIN_GP_FEATURE):
+                             positions=None, min_gp_feature=MIN_GP_FEATURE,
+                             next_teams=None):
     """
     Features for a season with no target yet (2026 -> project 2027).
+
+    `next_teams` maps player name -> next season's team (None/NaN = will not
+    play), normally roster_changes.next_teams(). Anyone absent keeps their
+    feature-season team.
 
     Goes through the same `_feature_frame` path as training. `team_changed` is
     0 here because the offseason has not been observed; roster_changes.py sets
@@ -451,8 +515,12 @@ def build_inference_features(gamelog_df, feature_season, player_info=None,
     if player_info is None:
         player_info = load_player_info()
 
+    overrides = next_teams or {}
+    season_rows = seasons[seasons['season'] == feature_season]
+    next_team = {(p, feature_season): overrides.get(p, team)
+                 for p, team in zip(season_rows['player'], season_rows['team'])}
     rows = _feature_frame(seasons, feature_rows, player_info,
-                          target_season=feature_season + 1)
+                          target_season=feature_season + 1, next_team=next_team)
     rows['team_changed'] = 0
     for target in ALL_TARGETS:
         rows[f'baseline_{target}'] = rows[f'{target}_prev']

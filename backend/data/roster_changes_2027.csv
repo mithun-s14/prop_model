@@ -9,6 +9,7 @@ Ayo Dosunmu,dosunay01,MIN,free_agency,unknown,,active,CHI -> MIN,markdowns/roste
 Bobby Portis,portibo01,MIA,trade,unknown,,active,MIL -> MIA,markdowns/roster_moves.md,2026-07-06
 Bogdan Bogdanović,bogdabo01,HOU,free_agency,unknown,,active,LAC -> HOU,markdowns/roster_moves.md,2026-07-08
 Branden Carlson,carlsbr01,POR,free_agency,unknown,,active,OKC -> POR,markdowns/roster_moves.md,2026-07-01
+Brandon Ingram,ingrabr01,LAC,trade,same,,active,TOR -> LAC; 33.8 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,user-supplied trade details,2026-10-17
 Brandon Williams,willibr03,GSW,free_agency,unknown,,active,DAL -> GSW,markdowns/roster_moves.md,2026-08-26
 Caleb Love,loveca01,PHI,free_agency,unknown,,active,POR -> PHI,markdowns/roster_moves.md,2026-07-05
 Cam Whitmore,whitmca01,FA,waived,smaller,,active,"waived, unsigned as of 2026-09-09; unsigned in September -> reduced role",markdowns/roster_moves.md,2026-08-28
@@ -28,6 +29,7 @@ Elijah Harkless,harklej01,DET,free_agency,unknown,,active,UTA -> DET,markdowns/r
 Ethan Thompson,thompet01,FA,waived,smaller,,active,"waived, unsigned as of 2026-09-09; unsigned in September -> reduced role",markdowns/roster_moves.md,2026-08-13
 Gary Harris,harriga01,DET,trade,unknown,,active,MIL -> DET,markdowns/roster_moves.md,2026-07-08
 Giannis Antetokounmpo,antetgi01,MIA,trade,unknown,,active,MIL -> MIA,markdowns/roster_moves.md,2026-07-06
+Gradey Dick,dickgr01,LAC,trade,unknown,,active,TOR -> LAC,user-supplied trade details,2026-10-17
 Grayson Allen,allengr01,CHO,trade,unknown,,active,PHO -> CHO,markdowns/roster_moves.md,2026-07-13
 Isaiah Joe,joeis01,DET,trade,unknown,,active,OKC -> DET,markdowns/roster_moves.md,2026-07-06
 Isaiah Stewart,stewais01,MEM,trade,unknown,,active,DET -> MEM,markdowns/roster_moves.md,2026-07-08
@@ -57,6 +59,7 @@ Julian Phillips,phillju01,HOU,free_agency,unknown,,active,CHI -> HOU,markdowns/r
 Julius Randle,randlju01,BRK,trade,larger,,active,MIN -> BRK; 33.0 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-07-10
 Kam Jones,joneska03,MIL,free_agency,unknown,,active,IND -> MIL,markdowns/roster_moves.md,2026-07-06
 Kasparas Jakučionis,jakucka01,MIL,trade,unknown,,active,MIA -> MIL,markdowns/roster_moves.md,2026-07-06
+Kawhi Leonard,leonaka01,TOR,trade,same,,active,LAC -> TOR; 32.1 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,user-supplied trade details,2026-10-17
 Kel'el Ware,wareke01,MIL,trade,larger,,active,MIA -> MIL,markdowns/roster_moves.md,2026-07-06
 Kelly Oubre Jr.,oubreke01,IND,free_agency,same,,active,PHI -> IND; 31.5 MPG in 2025-26 -- no 30+ MPG mover in 858 historical moves gained a much_larger role,markdowns/roster_moves.md,2026-07-07
 Kentavious Caldwell-Pope,caldwke01,PHI,free_agency,unknown,,active,MEM -> PHI,markdowns/roster_moves.md,2026-08-05

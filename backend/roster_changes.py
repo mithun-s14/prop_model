@@ -339,6 +339,23 @@ def apply_to_projections(projections, changes_df, warn=True):
     return df
 
 
+def next_teams(changes_df):
+    """
+    player name -> next season's team for every row in the file; None for a
+    player who will not play (dropped status, or unsigned as FA). Feeds the
+    model's ROSTER features, so a star's arrival lowers his teammates' volume.
+    """
+    if changes_df is None or len(changes_df) == 0:
+        return {}
+    teams = {}
+    for row in changes_df.drop_duplicates('player_name', keep='last').itertuples():
+        status = str(getattr(row, 'status', 'active') or 'active').strip().lower()
+        team = row.new_team if isinstance(row.new_team, str) else None
+        gone = status in DROP_STATUSES or team in (None, FREE_AGENT)
+        teams[row.player_name] = None if gone else team
+    return teams
+
+
 def _rookie_rows(board, changes):
     """Zero-stat NO_PRIOR_SEASON rows for active `draft` entries not already projected."""
     known = set(board['player'])

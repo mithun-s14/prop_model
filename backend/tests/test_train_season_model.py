@@ -30,6 +30,7 @@ from train_season_model import (  # noqa: E402
     ranking_metrics,
     residual_quantiles,
     shrunk_baseline,
+    walk_forward,
 )
 
 
@@ -641,3 +642,33 @@ def test_ranking_metrics_default_to_the_shipped_pool():
     # Same rows, same predictions -- the pool alone changes the score, which is
     # why the default has to match the product.
     assert shipped['spearman'] != full_pool['spearman']
+
+
+# ---------------------------------------------------------------------------
+# Walk-forward backtest
+# ---------------------------------------------------------------------------
+
+def _synthetic_transitions(seasons, rows_per_season=40):
+    return pd.DataFrame({
+        'target_season': np.repeat(seasons, rows_per_season),
+        'player': [f'p{i}' for i in range(len(seasons) * rows_per_season)],
+    })
+
+
+def test_walk_forward_never_trains_on_the_test_season_or_later():
+    data = _synthetic_transitions([2020, 2021, 2022, 2023])
+    splits = walk_forward(data)
+    assert [held_out for held_out, _, _ in splits] == [2022, 2023]
+    for held_out, train_df, test_df in splits:
+        assert train_df['target_season'].max() < held_out
+        assert set(test_df['target_season']) == {held_out}
+
+
+def test_walk_forward_skips_folds_with_too_little_training_data():
+    data = _synthetic_transitions([2020, 2021, 2022], rows_per_season=10)
+    assert walk_forward(data) == []
+
+
+def test_walk_forward_returns_nothing_without_enough_seasons():
+    data = _synthetic_transitions([2020, 2021])
+    assert walk_forward(data) == []

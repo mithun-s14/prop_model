@@ -403,6 +403,23 @@ def leave_one_transition_out(dataset, blocks_by_target=None, alpha_by_target=Non
     return results
 
 
+def walk_forward(dataset, min_train_transitions=2):
+    """
+    Strict forward-only backtest: test each season using only the seasons before
+    it, as a real preseason projection would have been made. The first
+    `min_train_transitions` seasons are training-only.
+    """
+    transitions = sorted(dataset['target_season'].unique())
+    results = []
+    for held_out in transitions[min_train_transitions:]:
+        test_df = dataset[dataset['target_season'] == held_out]
+        train_df = dataset[dataset['target_season'] < held_out]
+        if len(train_df) < 30 or len(test_df) < 30:
+            continue
+        results.append((held_out, train_df, test_df))
+    return results
+
+
 def evaluate_transition(train_df, test_df, blocks_by_target, alpha_by_target):
     """All targets, all baselines, on one train/test split."""
     predictions, summaries = {}, {}
@@ -706,8 +723,10 @@ def project_next_season(gamelog_df=None, feature_season=2026, gamelog_path=GAMEL
     player_info = load_player_info()
 
     dataset = build_season_dataset(gamelog_df, player_info=player_info, positions=positions)
+    from roster_changes import next_teams
     inference = build_inference_features(gamelog_df, feature_season,
-                                         player_info=player_info, positions=positions)
+                                         player_info=player_info, positions=positions,
+                                         next_teams=next_teams(roster_changes))
     if dataset.empty or inference.empty:
         return pd.DataFrame()
 
@@ -784,8 +803,14 @@ def _print_target_summary(target, summary):
           f"({sh['improvement']:+.3f}, p={sh['p_value']:.3f}) {verdict}")
 
 
-def run(gamelog_path=GAMELOG_PATH, verbose=True, select=True):
-    """Full evaluation report: baselines, per-target models, ranking metrics."""
+def run(gamelog_path=GAMELOG_PATH, verbose=True, select=True, forward_only=False):
+    """
+    Full evaluation report: baselines, per-target models, ranking metrics.
+
+    forward_only=True backtests with walk_forward() and re-selects blocks and
+    alpha on each fold's training seasons, so nothing from the test season or
+    later reaches the fit.
+    """
     gamelog_df = pd.read_csv(gamelog_path)
     positions = load_positions()
     player_info = load_player_info()
@@ -805,22 +830,28 @@ def run(gamelog_path=GAMELOG_PATH, verbose=True, select=True):
     _print_baseline_table(report)
 
     blocks_by_target, alpha_by_target = {}, {}
-    if select:
+    if select and not forward_only:
         print("\n--- block selection (grouped CV, per target) ---")
         for target in ALL_TARGETS:
             blocks, alpha, mae = select_blocks(dataset, target)
             blocks_by_target[target] = blocks
             alpha_by_target[target] = alpha
             print(f"  {target:5s} {'+'.join(blocks):32s} alpha={alpha:<4d} cv_mae={mae:.3f}")
-    else:
+    elif not select:
         for target in ALL_TARGETS:
             blocks_by_target[target] = ['PRIOR']
             alpha_by_target[target] = 30
 
-    print("\n--- leave-one-transition-out ---")
+    splits = walk_forward(dataset) if forward_only else leave_one_transition_out(dataset)
+    print("\n--- walk-forward ---" if forward_only else "\n--- leave-one-transition-out ---")
     all_summaries = {}
-    for held_out, train_df, test_df in leave_one_transition_out(dataset):
+    for held_out, train_df, test_df in splits:
         print(f"\n  test season {held_out}  (train {len(train_df)} / test {len(test_df)})")
+        if forward_only and select:
+            for target in ALL_TARGETS:
+                blocks, alpha, _ = select_blocks(train_df.reset_index(drop=True), target)
+                blocks_by_target[target] = blocks
+                alpha_by_target[target] = alpha
         predictions, summaries = evaluate_transition(train_df, test_df,
                                                      blocks_by_target, alpha_by_target)
         for target in ALL_TARGETS:
@@ -854,6 +885,7 @@ def run(gamelog_path=GAMELOG_PATH, verbose=True, select=True):
 def main(argv=None):
     """
     python train_season_model.py              evaluation report (section 8)
+    python train_season_model.py --walk-forward   same, forward-only backtest
     python train_season_model.py --project    write season_projections_2027.csv
     """
     import argparse
@@ -864,10 +896,12 @@ def main(argv=None):
                         help='fit on every transition and write the projection CSV')
     parser.add_argument('--feature-season', type=int, default=2026)
     parser.add_argument('--out', default=PROJECTIONS_PATH)
+    parser.add_argument('--walk-forward', action='store_true',
+                        help='evaluate with a strict forward-only backtest')
     args = parser.parse_args(argv)
 
     if not args.project:
-        run()
+        run(forward_only=args.walk_forward)
         return 0
 
     gamelog_df = pd.read_csv(GAMELOG_PATH)

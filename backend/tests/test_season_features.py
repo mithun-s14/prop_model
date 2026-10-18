@@ -455,3 +455,80 @@ def test_equal_sized_seasons_are_all_kept(multi_season_gamelog):
     """The guard is relative, so a small-but-consistent dataset is untouched."""
     ds = build_season_dataset(multi_season_gamelog)
     assert set(ds['target_season']) == {2025, 2026}
+
+
+# ---------------------------------------------------------------------------
+# ROSTER block: teammates' shot volume
+# ---------------------------------------------------------------------------
+
+from season_features import _attach_teammate_shots  # noqa: E402
+
+
+def _roster_seasons():
+    """Three teams, one season; shots per team game = fga_sum / 80."""
+    return pd.DataFrame({
+        'player': ['Guard', 'Wing', 'Star', 'Neutral', 'Bench'],
+        'season': [2026] * 5,
+        'team': ['PHI', 'PHI', 'LAL', 'BOS', 'LAL'],
+        'gp': [80] * 5,
+        'fga_sum': [1600, 800, 1600, 1200, 80],   # 20, 10, 20, 15, 1 shots/game
+    })
+
+
+def _roster_rows(seasons):
+    rows = seasons.rename(columns={'season': 'feature_season', 'team': 'team_prev'})
+    rows['target_season'] = 2027
+    rows['fga_share'] = rows['fga_sum'] / 4000
+    return rows.copy()
+
+
+def _deltas(next_team):
+    seasons = _roster_seasons()
+    out = _attach_teammate_shots(_roster_rows(seasons), seasons, next_team)
+    return out.set_index('player')['tm_shots_delta']
+
+
+def _stay():
+    s = _roster_seasons()
+    return {(p, 2026): t for p, t in zip(s['player'], s['team'])}
+
+
+def test_star_arriving_lowers_incumbents_relative_to_unaffected_team():
+    moved = {**_stay(), ('Star', 2026): 'PHI'}
+    d = _deltas(moved)
+    # Guard's teammates gain the Star's 20 shots; Neutral's roster is unchanged
+    assert d['Guard'] - d['Neutral'] == pytest.approx(20.0)
+    assert d['Wing'] - d['Neutral'] == pytest.approx(20.0)
+
+
+def test_no_moves_gives_zero_feature():
+    d = _deltas(_stay())
+    assert np.allclose(d, 0.0)
+
+
+def test_departure_frees_shots_for_remaining_teammates():
+    gone = {**_stay(), ('Star', 2026): None}
+    d = _deltas(gone)
+    assert d['Bench'] - d['Neutral'] == pytest.approx(-20.0)
+
+
+def test_sub_rotation_player_moving_does_not_affect_teammates():
+    moved = {**_stay(), ('Bench', 2026): 'PHI'}
+    others = _deltas(moved).drop('Bench')
+    # Only the mover's own teammates change; everyone else shifts by the demean alone
+    assert np.allclose(others, others.iloc[0])
+
+
+def test_feature_is_demeaned_per_target_season():
+    moved = {**_stay(), ('Star', 2026): 'PHI'}
+    assert _deltas(moved).mean() == pytest.approx(0.0)
+
+
+def test_inference_uses_supplied_next_teams(multi_season_gamelog, season_player_info):
+    base = build_inference_features(multi_season_gamelog, 2026, player_info=season_player_info)
+    assert np.allclose(base['tm_shots_delta'], 0.0)
+    everyone_gone = {p: None for p in base['player']}
+    moved = build_inference_features(multi_season_gamelog, 2026, player_info=season_player_info,
+                                     next_teams=everyone_gone)
+    assert list(moved.columns) == list(base.columns)
+    assert np.isfinite(moved['tm_shots_delta']).all()

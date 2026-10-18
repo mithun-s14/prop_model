@@ -26,6 +26,7 @@ from roster_changes import (  # noqa: E402
     excluded_players,
     interval_multiplier,
     load_roster_changes,
+    next_teams,
     normalize_team,
     resolve_player_ids,
     validate,
@@ -526,3 +527,19 @@ def test_real_roster_file_only_lists_players_who_changed_something(
         if previous is not None and previous == row.new_team:
             stayers.append(row.player_name)
     assert stayers == []
+
+
+def test_next_teams_maps_moves_and_marks_non_players_none():
+    changes = pd.DataFrame({
+        'player_name': ['Mover', 'Unsigned', 'Injured', 'Retiree'],
+        'new_team': ['PHI', 'FA', 'BOS', 'LAL'],
+        'change_type': ['trade', 'waived', 're_signed', 'retired'],
+        'status': ['active', 'active', 'out_for_season', 'retired'],
+    })
+    assert next_teams(changes) == {'Mover': 'PHI', 'Unsigned': None,
+                                   'Injured': None, 'Retiree': None}
+
+
+def test_next_teams_empty_input():
+    assert next_teams(None) == {}
+    assert next_teams(pd.DataFrame(columns=['player_name', 'new_team'])) == {}
