@@ -1,0 +1,193 @@
+==============================================================================
+SEASON PROJECTION MODEL -- PRESEASON FANTASY PROJECTIONS
+==============================================================================
+rows: 2502   transitions: [2020, 2021, 2022, 2023, 2024, 2025, 2026]   players: 714
+
+--- per-category baselines (all rows, before any model) ---
+  target    n   corr      sd   carry      w  shrunk  min-wt
+  pts    2502  0.885   6.653   2.464  0.925   2.432   2.420
+  reb    2502  0.877   2.423   0.893  0.900   0.873   0.871
+  ast    2502  0.892   1.951   0.648  0.925   0.635   0.640
+  stl    2502  0.765   0.380   0.199  0.775   0.188   0.196
+  blk    2502  0.857   0.410   0.157  0.850   0.151   0.155
+  fg3m   2502  0.860   0.917   0.348  0.950   0.346   0.343
+  tov    2502  0.863   0.828   0.330  0.875   0.321   0.325
+  min    2502  0.788   8.242   4.041  0.875   3.940   4.041
+  gp     2502  0.305  17.274  15.014  0.375  12.949  15.014
+  fgm    2502  0.880   2.363   0.899  0.925   0.889   0.899
+  fga    2502  0.883   4.891   1.828  0.925   1.800   1.792
+  ftm    2502  0.886   1.532   0.522  0.925   0.515   0.522
+  fta    2502  0.889   1.859   0.639  0.925   0.629   0.639
+
+--- block selection (grouped CV, per target) ---
+  pts   PRIOR+AGE+ROSTER+PRIOR2+RATE+CTX+TREND alpha=1    cv_mae=2.163
+  reb   PRIOR+AGE+PRIOR2+ROSTER+CTX      alpha=1    cv_mae=0.800
+  ast   PRIOR+AGE+ROSTER+CTX+TREND+PRIOR2 alpha=100  cv_mae=0.593
+  stl   PRIOR+AGE+ROSTER+CTX+PRIOR2+RATIO alpha=100  cv_mae=0.179
+  blk   PRIOR+CTX+AGE+PRIOR2+ROSTER      alpha=30   cv_mae=0.143
+  fg3m  PRIOR+AGE+CTX+ROSTER+RATIO+PRIOR2 alpha=300  cv_mae=0.331
+  tov   PRIOR+AGE+ROSTER+PRIOR2+TREND    alpha=10   cv_mae=0.289
+  min   PRIOR+AGE+ROSTER+PRIOR2          alpha=100  cv_mae=3.572
+  gp    PRIOR+AGE+PRIOR2+RATE+ROSTER     alpha=10   cv_mae=12.181
+  fgm   PRIOR+AGE+ROSTER+PRIOR2+RATE+TREND+CTX alpha=30   cv_mae=0.794
+  fga   PRIOR+AGE+ROSTER+PRIOR2+CTX+RATIO+TREND alpha=1    cv_mae=1.595
+  ftm   PRIOR+AGE+ROSTER+RATE+PRIOR2+RATIO alpha=1    cv_mae=0.486
+  fta   PRIOR+AGE+ROSTER+RATE+PRIOR2+RATIO alpha=1    cv_mae=0.591
+
+--- leave-one-transition-out ---
+
+  test season 2020  (train 2166 / test 336)
+  pts   model   2.340 | carry   2.611 (+0.270) | shrunk   2.589 (+0.249, p=0.006) BEATS
+  reb   model   0.862 | carry   0.990 (+0.128) | shrunk   0.954 (+0.092, p=0.003) BEATS
+  ast   model   0.588 | carry   0.649 (+0.061) | shrunk   0.627 (+0.039, p=0.019) BEATS
+  stl   model   0.181 | carry   0.205 (+0.025) | shrunk   0.190 (+0.009, p=0.052)      
+  blk   model   0.146 | carry   0.154 (+0.008) | shrunk   0.148 (+0.002, p=0.512)      
+  fg3m  model   0.353 | carry   0.364 (+0.012) | shrunk   0.363 (+0.011, p=0.189)      
+  tov   model   0.317 | carry   0.341 (+0.024) | shrunk   0.335 (+0.018, p=0.069)      
+  min   model   3.638 | carry   4.276 (+0.638) | shrunk   4.169 (+0.531, p=0.000) BEATS
+  gp    model  10.992 | carry  16.339 (+5.348) | shrunk  11.458 (+0.467, p=0.123)      
+  fgm   model   0.820 | carry   0.938 (+0.118) | shrunk   0.930 (+0.110, p=0.000) BEATS
+  fga   model   1.677 | carry   1.920 (+0.243) | shrunk   1.898 (+0.221, p=0.001) BEATS
+  ftm   model   0.541 | carry   0.583 (+0.041) | shrunk   0.575 (+0.034, p=0.017) BEATS
+  fta   model   0.659 | carry   0.714 (+0.055) | shrunk   0.705 (+0.045, p=0.014) BEATS
+    9-cat rank  model rho 0.803 vs carry-forward rho 0.758
+      top-12   retention  model  66.7%  carry-forward  66.7%
+      top-25   retention  model  64.0%  carry-forward  64.0%
+      top-50   retention  model  74.0%  carry-forward  74.0%
+      top-100  retention  model  71.0%  carry-forward  72.0%
+      top-150  retention  model  81.3%  carry-forward  77.3%
+    bust/breakout direction recall: 81.2% of 96 movers
+
+  test season 2021  (train 2165 / test 337)
+  pts   model   2.081 | carry   2.454 (+0.373) | shrunk   2.420 (+0.339, p=0.000) BEATS
+  reb   model   0.814 | carry   0.926 (+0.112) | shrunk   0.897 (+0.084, p=0.002) BEATS
+  ast   model   0.591 | carry   0.650 (+0.059) | shrunk   0.642 (+0.051, p=0.001) BEATS
+  stl   model   0.171 | carry   0.189 (+0.017) | shrunk   0.176 (+0.005, p=0.229)      
+  blk   model   0.155 | carry   0.162 (+0.008) | shrunk   0.160 (+0.006, p=0.089)      
+  fg3m  model   0.331 | carry   0.352 (+0.020) | shrunk   0.351 (+0.020, p=0.010) BEATS
+  tov   model   0.277 | carry   0.329 (+0.053) | shrunk   0.318 (+0.042, p=0.000) BEATS
+  min   model   3.520 | carry   3.886 (+0.366) | shrunk   3.814 (+0.295, p=0.011) BEATS
+  gp    model  10.635 | carry  12.659 (+2.024) | shrunk  11.362 (+0.727, p=0.008) BEATS
+  fgm   model   0.769 | carry   0.904 (+0.135) | shrunk   0.898 (+0.129, p=0.000) BEATS
+  fga   model   1.528 | carry   1.810 (+0.282) | shrunk   1.784 (+0.256, p=0.000) BEATS
+  ftm   model   0.456 | carry   0.505 (+0.049) | shrunk   0.493 (+0.038, p=0.002) BEATS
+  fta   model   0.560 | carry   0.614 (+0.053) | shrunk   0.593 (+0.033, p=0.037) BEATS
+    9-cat rank  model rho 0.842 vs carry-forward rho 0.787
+      top-12   retention  model  66.7%  carry-forward  75.0%
+      top-25   retention  model  68.0%  carry-forward  68.0%
+      top-50   retention  model  74.0%  carry-forward  72.0%
+      top-100  retention  model  74.0%  carry-forward  72.0%
+      top-150  retention  model  83.3%  carry-forward  79.3%
+    bust/breakout direction recall: 75.0% of 104 movers
+
+  test season 2022  (train 2134 / test 368)
+  pts   model   2.052 | carry   2.350 (+0.298) | shrunk   2.333 (+0.280, p=0.000) BEATS
+  reb   model   0.781 | carry   0.879 (+0.098) | shrunk   0.870 (+0.089, p=0.000) BEATS
+  ast   model   0.552 | carry   0.614 (+0.063) | shrunk   0.608 (+0.056, p=0.000) BEATS
+  stl   model   0.179 | carry   0.197 (+0.018) | shrunk   0.193 (+0.014, p=0.000) BEATS
+  blk   model   0.150 | carry   0.164 (+0.014) | shrunk   0.155 (+0.005, p=0.095)      
+  fg3m  model   0.319 | carry   0.339 (+0.021) | shrunk   0.335 (+0.017, p=0.018) BEATS
+  tov   model   0.273 | carry   0.316 (+0.043) | shrunk   0.315 (+0.042, p=0.000) BEATS
+  min   model   3.337 | carry   3.886 (+0.549) | shrunk   3.843 (+0.505, p=0.000) BEATS
+  gp    model  12.238 | carry  15.014 (+2.776) | shrunk  12.933 (+0.695, p=0.010) BEATS
+  fgm   model   0.765 | carry   0.880 (+0.115) | shrunk   0.870 (+0.104, p=0.000) BEATS
+  fga   model   1.511 | carry   1.781 (+0.270) | shrunk   1.757 (+0.247, p=0.000) BEATS
+  ftm   model   0.430 | carry   0.478 (+0.048) | shrunk   0.472 (+0.042, p=0.000) BEATS
+  fta   model   0.532 | carry   0.580 (+0.048) | shrunk   0.577 (+0.045, p=0.003) BEATS
+    9-cat rank  model rho 0.824 vs carry-forward rho 0.781
+      top-12   retention  model  66.7%  carry-forward  58.3%
+      top-25   retention  model  64.0%  carry-forward  60.0%
+      top-50   retention  model  78.0%  carry-forward  72.0%
+      top-100  retention  model  78.0%  carry-forward  75.0%
+      top-150  retention  model  78.7%  carry-forward  78.7%
+    bust/breakout direction recall: 79.5% of 112 movers
+
+  test season 2023  (train 2143 / test 359)
+  pts   model   2.054 | carry   2.374 (+0.320) | shrunk   2.398 (+0.345, p=0.000) BEATS
+  reb   model   0.804 | carry   0.918 (+0.115) | shrunk   0.906 (+0.102, p=0.000) BEATS
+  ast   model   0.558 | carry   0.595 (+0.037) | shrunk   0.596 (+0.038, p=0.016) BEATS
+  stl   model   0.167 | carry   0.185 (+0.019) | shrunk   0.178 (+0.011, p=0.002) BEATS
+  blk   model   0.143 | carry   0.159 (+0.016) | shrunk   0.154 (+0.011, p=0.000) BEATS
+  fg3m  model   0.308 | carry   0.327 (+0.019) | shrunk   0.325 (+0.016, p=0.010) BEATS
+  tov   model   0.260 | carry   0.319 (+0.059) | shrunk   0.306 (+0.046, p=0.000) BEATS
+  min   model   3.587 | carry   4.050 (+0.463) | shrunk   4.017 (+0.430, p=0.000) BEATS
+  gp    model  13.275 | carry  15.134 (+1.858) | shrunk  14.122 (+0.847, p=0.001) BEATS
+  fgm   model   0.779 | carry   0.867 (+0.089) | shrunk   0.875 (+0.097, p=0.000) BEATS
+  fga   model   1.522 | carry   1.785 (+0.264) | shrunk   1.779 (+0.257, p=0.000) BEATS
+  ftm   model   0.484 | carry   0.517 (+0.033) | shrunk   0.532 (+0.048, p=0.000) BEATS
+  fta   model   0.589 | carry   0.634 (+0.045) | shrunk   0.650 (+0.061, p=0.000) BEATS
+    9-cat rank  model rho 0.844 vs carry-forward rho 0.794
+      top-12   retention  model  58.3%  carry-forward  50.0%
+      top-25   retention  model  72.0%  carry-forward  72.0%
+      top-50   retention  model  76.0%  carry-forward  76.0%
+      top-100  retention  model  82.0%  carry-forward  79.0%
+      top-150  retention  model  83.3%  carry-forward  82.0%
+    bust/breakout direction recall: 76.5% of 102 movers
+
+  test season 2024  (train 2137 / test 365)
+  pts   model   2.144 | carry   2.297 (+0.153) | shrunk   2.272 (+0.127, p=0.041) BEATS
+  reb   model   0.784 | carry   0.811 (+0.027) | shrunk   0.826 (+0.042, p=0.049) BEATS
+  ast   model   0.607 | carry   0.648 (+0.040) | shrunk   0.630 (+0.022, p=0.107)      
+  stl   model   0.161 | carry   0.176 (+0.015) | shrunk   0.169 (+0.008, p=0.025) BEATS
+  blk   model   0.140 | carry   0.147 (+0.007) | shrunk   0.144 (+0.004, p=0.153)      
+  fg3m  model   0.323 | carry   0.320 (-0.002) | shrunk   0.321 (-0.002, p=0.780)      
+  tov   model   0.298 | carry   0.312 (+0.014) | shrunk   0.302 (+0.004, p=0.614)      
+  min   model   3.456 | carry   3.815 (+0.360) | shrunk   3.772 (+0.317, p=0.000) BEATS
+  gp    model  12.309 | carry  14.441 (+2.133) | shrunk  13.344 (+1.035, p=0.000) BEATS
+  fgm   model   0.790 | carry   0.837 (+0.047) | shrunk   0.838 (+0.048, p=0.030) BEATS
+  fga   model   1.607 | carry   1.722 (+0.115) | shrunk   1.712 (+0.105, p=0.022) BEATS
+  ftm   model   0.525 | carry   0.517 (-0.007) | shrunk   0.500 (-0.024, p=0.041)      
+  fta   model   0.639 | carry   0.638 (-0.001) | shrunk   0.608 (-0.031, p=0.043)      
+    9-cat rank  model rho 0.875 vs carry-forward rho 0.837
+      top-12   retention  model  58.3%  carry-forward  66.7%
+      top-25   retention  model  80.0%  carry-forward  76.0%
+      top-50   retention  model  76.0%  carry-forward  74.0%
+      top-100  retention  model  78.0%  carry-forward  78.0%
+      top-150  retention  model  84.0%  carry-forward  80.7%
+    bust/breakout direction recall: 84.9% of 106 movers
+
+  test season 2025  (train 2131 / test 371)
+  pts   model   2.058 | carry   2.303 (+0.245) | shrunk   2.260 (+0.203, p=0.002) BEATS
+  reb   model   0.754 | carry   0.798 (+0.044) | shrunk   0.775 (+0.021, p=0.312)      
+  ast   model   0.599 | carry   0.637 (+0.037) | shrunk   0.618 (+0.018, p=0.216)      
+  stl   model   0.192 | carry   0.212 (+0.020) | shrunk   0.202 (+0.010, p=0.004) BEATS
+  blk   model   0.136 | carry   0.146 (+0.010) | shrunk   0.140 (+0.004, p=0.111)      
+  fg3m  model   0.324 | carry   0.352 (+0.027) | shrunk   0.349 (+0.024, p=0.000) BEATS
+  tov   model   0.290 | carry   0.313 (+0.024) | shrunk   0.311 (+0.021, p=0.012) BEATS
+  min   model   3.524 | carry   3.860 (+0.336) | shrunk   3.755 (+0.231, p=0.007) BEATS
+  gp    model  13.131 | carry  15.164 (+2.033) | shrunk  13.705 (+0.574, p=0.025) BEATS
+  fgm   model   0.782 | carry   0.844 (+0.062) | shrunk   0.828 (+0.047, p=0.046) BEATS
+  fga   model   1.548 | carry   1.717 (+0.169) | shrunk   1.692 (+0.144, p=0.005) BEATS
+  ftm   model   0.437 | carry   0.462 (+0.024) | shrunk   0.453 (+0.016, p=0.188)      
+  fta   model   0.540 | carry   0.567 (+0.028) | shrunk   0.557 (+0.017, p=0.256)      
+    9-cat rank  model rho 0.876 vs carry-forward rho 0.854
+      top-12   retention  model  58.3%  carry-forward  58.3%
+      top-25   retention  model  56.0%  carry-forward  60.0%
+      top-50   retention  model  74.0%  carry-forward  74.0%
+      top-100  retention  model  82.0%  carry-forward  79.0%
+      top-150  retention  model  83.3%  carry-forward  84.0%
+    bust/breakout direction recall: 70.8% of 113 movers
+
+  test season 2026  (train 2136 / test 366)
+  pts   model   2.616 | carry   2.869 (+0.254) | shrunk   2.795 (+0.179, p=0.007) BEATS
+  reb   model   0.839 | carry   0.941 (+0.102) | shrunk   0.902 (+0.064, p=0.002) BEATS
+  ast   model   0.686 | carry   0.742 (+0.056) | shrunk   0.728 (+0.041, p=0.002) BEATS
+  stl   model   0.209 | carry   0.227 (+0.019) | shrunk   0.210 (+0.001, p=0.705)      
+  blk   model   0.149 | carry   0.162 (+0.014) | shrunk   0.155 (+0.007, p=0.004) BEATS
+  fg3m  model   0.375 | carry   0.384 (+0.009) | shrunk   0.376 (+0.001, p=0.847)      
+  tov   model   0.331 | carry   0.379 (+0.048) | shrunk   0.361 (+0.030, p=0.000) BEATS
+  min   model   3.977 | carry   4.523 (+0.546) | shrunk   4.265 (+0.288, p=0.000) BEATS
+  gp    model  13.313 | carry  16.270 (+2.958) | shrunk  13.570 (+0.257, p=0.254)      
+  fgm   model   0.941 | carry   1.029 (+0.088) | shrunk   0.999 (+0.058, p=0.012) BEATS
+  fga   model   1.861 | carry   2.071 (+0.210) | shrunk   2.005 (+0.145, p=0.004) BEATS
+  ftm   model   0.581 | carry   0.598 (+0.017) | shrunk   0.597 (+0.016, p=0.167)      
+  fta   model   0.707 | carry   0.733 (+0.026) | shrunk   0.722 (+0.015, p=0.298)      
+    9-cat rank  model rho 0.767 vs carry-forward rho 0.743
+      top-12   retention  model  58.3%  carry-forward  58.3%
+      top-25   retention  model  72.0%  carry-forward  68.0%
+      top-50   retention  model  66.0%  carry-forward  66.0%
+      top-100  retention  model  76.0%  carry-forward  76.0%
+      top-150  retention  model  78.7%  carry-forward  78.0%
+    bust/breakout direction recall: 69.4% of 111 movers
+
+POOLED {"mae": {"pts": 2.191694793615655, "reb": 0.8043594165278797, "ast": 0.5976930834490963, "stl": 0.180062103961379, "blk": 0.14538116226628922, "fg3m": 0.333094580666703, "tov": 0.2921199930093643, "min": 3.5765387378164664, "gp": 12.303467352906754, "fgm": 0.8067945424316945, "fga": 1.6077560736951693, "ftm": 0.49324258624083134, "fta": 0.6034533273306134}, "bias": {"pts": -0.009858488590381433, "reb": 0.01797616776735195, "ast": 0.008545146828566452, "stl": 0.0032213089273933674, "blk": 0.005534428943060355, "fg3m": 0.0021138346205385595, "tov": -0.007930736413240052, "min": 0.07801828219862436, "gp": 1.7104219493384267, "fgm": -0.0003002517267474855, "fga": 0.000834501889660086, "ftm": -0.0112231870409436, "fta": -0.014643601968532418}, "rho": 0.832830237896671, "top": {"12": 52, "25": 119, "50": 259, "100": 541, "150": 859}, "bb": [570, 744], "boards": {"pg_vs_pg": {"rho": 0.832830237896671, "top100": 541, "top50": 259}, "pg_vs_tot": {"rho": 0.7415752145767524, "top100": 476, "top50": 217}, "tot_vs_pg": {"rho": 0.8309431263916547, "top100": 533, "top50": 254}, "tot_vs_tot": {"rho": 0.7520273522087587, "top100": 481, "top50": 215}}, "blocks": [{"pts": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "CTX", "TREND"], "reb": ["PRIOR", "AGE", "PRIOR2", "ROSTER", "CTX"], "ast": ["PRIOR", "AGE", "ROSTER", "CTX", "TREND", "PRIOR2"], "stl": ["PRIOR", "AGE", "ROSTER", "CTX", "PRIOR2", "RATIO"], "blk": ["PRIOR", "CTX", "AGE", "PRIOR2", "ROSTER"], "fg3m": ["PRIOR", "AGE", "CTX", "ROSTER", "RATIO", "PRIOR2"], "tov": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "TREND"], "min": ["PRIOR", "AGE", "ROSTER", "PRIOR2"], "gp": ["PRIOR", "AGE", "PRIOR2", "RATE", "ROSTER"], "fgm": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "TREND", "CTX"], "fga": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "CTX", "RATIO", "TREND"], "ftm": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"], "fta": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"]}, {"pts": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "CTX", "TREND"], "reb": ["PRIOR", "AGE", "PRIOR2", "ROSTER", "CTX"], "ast": ["PRIOR", "AGE", "ROSTER", "CTX", "TREND", "PRIOR2"], "stl": ["PRIOR", "AGE", "ROSTER", "CTX", "PRIOR2", "RATIO"], "blk": ["PRIOR", "CTX", "AGE", "PRIOR2", "ROSTER"], "fg3m": ["PRIOR", "AGE", "CTX", "ROSTER", "RATIO", "PRIOR2"], "tov": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "TREND"], "min": ["PRIOR", "AGE", "ROSTER", "PRIOR2"], "gp": ["PRIOR", "AGE", "PRIOR2", "RATE", "ROSTER"], "fgm": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "TREND", "CTX"], "fga": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "CTX", "RATIO", "TREND"], "ftm": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"], "fta": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"]}, {"pts": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "CTX", "TREND"], "reb": ["PRIOR", "AGE", "PRIOR2", "ROSTER", "CTX"], "ast": ["PRIOR", "AGE", "ROSTER", "CTX", "TREND", "PRIOR2"], "stl": ["PRIOR", "AGE", "ROSTER", "CTX", "PRIOR2", "RATIO"], "blk": ["PRIOR", "CTX", "AGE", "PRIOR2", "ROSTER"], "fg3m": ["PRIOR", "AGE", "CTX", "ROSTER", "RATIO", "PRIOR2"], "tov": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "TREND"], "min": ["PRIOR", "AGE", "ROSTER", "PRIOR2"], "gp": ["PRIOR", "AGE", "PRIOR2", "RATE", "ROSTER"], "fgm": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "TREND", "CTX"], "fga": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "CTX", "RATIO", "TREND"], "ftm": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"], "fta": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"]}, {"pts": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "CTX", "TREND"], "reb": ["PRIOR", "AGE", "PRIOR2", "ROSTER", "CTX"], "ast": ["PRIOR", "AGE", "ROSTER", "CTX", "TREND", "PRIOR2"], "stl": ["PRIOR", "AGE", "ROSTER", "CTX", "PRIOR2", "RATIO"], "blk": ["PRIOR", "CTX", "AGE", "PRIOR2", "ROSTER"], "fg3m": ["PRIOR", "AGE", "CTX", "ROSTER", "RATIO", "PRIOR2"], "tov": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "TREND"], "min": ["PRIOR", "AGE", "ROSTER", "PRIOR2"], "gp": ["PRIOR", "AGE", "PRIOR2", "RATE", "ROSTER"], "fgm": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "TREND", "CTX"], "fga": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "CTX", "RATIO", "TREND"], "ftm": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"], "fta": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"]}, {"pts": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "CTX", "TREND"], "reb": ["PRIOR", "AGE", "PRIOR2", "ROSTER", "CTX"], "ast": ["PRIOR", "AGE", "ROSTER", "CTX", "TREND", "PRIOR2"], "stl": ["PRIOR", "AGE", "ROSTER", "CTX", "PRIOR2", "RATIO"], "blk": ["PRIOR", "CTX", "AGE", "PRIOR2", "ROSTER"], "fg3m": ["PRIOR", "AGE", "CTX", "ROSTER", "RATIO", "PRIOR2"], "tov": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "TREND"], "min": ["PRIOR", "AGE", "ROSTER", "PRIOR2"], "gp": ["PRIOR", "AGE", "PRIOR2", "RATE", "ROSTER"], "fgm": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "TREND", "CTX"], "fga": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "CTX", "RATIO", "TREND"], "ftm": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"], "fta": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"]}, {"pts": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "CTX", "TREND"], "reb": ["PRIOR", "AGE", "PRIOR2", "ROSTER", "CTX"], "ast": ["PRIOR", "AGE", "ROSTER", "CTX", "TREND", "PRIOR2"], "stl": ["PRIOR", "AGE", "ROSTER", "CTX", "PRIOR2", "RATIO"], "blk": ["PRIOR", "CTX", "AGE", "PRIOR2", "ROSTER"], "fg3m": ["PRIOR", "AGE", "CTX", "ROSTER", "RATIO", "PRIOR2"], "tov": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "TREND"], "min": ["PRIOR", "AGE", "ROSTER", "PRIOR2"], "gp": ["PRIOR", "AGE", "PRIOR2", "RATE", "ROSTER"], "fgm": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "TREND", "CTX"], "fga": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "CTX", "RATIO", "TREND"], "ftm": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"], "fta": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"]}, {"pts": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "CTX", "TREND"], "reb": ["PRIOR", "AGE", "PRIOR2", "ROSTER", "CTX"], "ast": ["PRIOR", "AGE", "ROSTER", "CTX", "TREND", "PRIOR2"], "stl": ["PRIOR", "AGE", "ROSTER", "CTX", "PRIOR2", "RATIO"], "blk": ["PRIOR", "CTX", "AGE", "PRIOR2", "ROSTER"], "fg3m": ["PRIOR", "AGE", "CTX", "ROSTER", "RATIO", "PRIOR2"], "tov": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "TREND"], "min": ["PRIOR", "AGE", "ROSTER", "PRIOR2"], "gp": ["PRIOR", "AGE", "PRIOR2", "RATE", "ROSTER"], "fgm": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "RATE", "TREND", "CTX"], "fga": ["PRIOR", "AGE", "ROSTER", "PRIOR2", "CTX", "RATIO", "TREND"], "ftm": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"], "fta": ["PRIOR", "AGE", "ROSTER", "RATE", "PRIOR2", "RATIO"]}], "folds": 7}
