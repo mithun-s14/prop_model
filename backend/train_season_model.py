@@ -703,7 +703,20 @@ def fit_and_project(dataset, inference_df, blocks_by_target, alpha_by_target, k=
 
 
 def attach_fantasy_value(projections, pool_size=None, punt=None):
-    """Attach 9-cat z-scores and league values to a projection frame."""
+    """
+    Attach 9-cat z-scores and league values to a projection frame.
+
+    `value_total_gp` (per-game x pred_gp) ships as an extra column, not the
+    default board. Measured on all 7 transitions at the shipped pool, rho /
+    top-50 / top-100 hits:
+
+        board       vs per-game actual    vs season-total actual
+        per-game    0.832 / 259 / 542     0.740 / 216 / 477
+        totals      0.830 / 256 / 531     0.752 / 218 / 479
+
+    The totals board wins only against season-total actuals and only by a
+    hair, because GP itself is hard to project.
+    """
     from fantasy_value import DEFAULT_POOL_SIZE, build_value_frame
 
     frame = projections.copy()
@@ -715,7 +728,7 @@ def attach_fantasy_value(projections, pool_size=None, punt=None):
         frame[dst] = frame[src]
     valued = build_value_frame(
         frame, pool_size=pool_size if pool_size is not None else DEFAULT_POOL_SIZE,
-        punt=punt,
+        punt=punt, games_col='pred_gp' if 'pred_gp' in frame else None,
     )
     return valued.drop(columns=list(renames.values()))
 
@@ -771,7 +784,8 @@ def output_columns():
         columns += [f'pred_{target}', f'pred_{target}_low', f'pred_{target}_high']
     columns += ['pred_fg_pct', 'pred_ft_pct']
     from fantasy_value import NINE_CAT
-    columns += [f'z_{c}' for c in NINE_CAT] + ['value_total', 'value_points_league']
+    columns += [f'z_{c}' for c in NINE_CAT] + ['value_total', 'value_total_gp',
+                                                   'value_points_league']
     columns += ['n_prior_seasons', 'team_changed', 'role_change', 'flags']
     return columns
 
@@ -886,11 +900,22 @@ def run(gamelog_path=GAMELOG_PATH, verbose=True, select=True, forward_only=False
         for n in sorted(model_rank['top_n']):
             print(f"      top-{n:<4d} retention  model {100*model_rank['top_n'][n]:5.1f}%  "
                   f"carry-forward {100*base_rank['top_n'][n]:5.1f}%")
+        # Per-game board (shipped) vs season-total board, each against both actuals
+        from fantasy_value import to_season_totals
+        actual_tot = to_season_totals(actual.assign(GP=test_df['target_gp'].to_numpy()), 'GP')
+        model_tot = to_season_totals(model_frame.assign(GP=predictions['gp']), 'GP')
+        boards = {}
+        for board_name, board in [('per-game', model_frame), ('totals', model_tot)]:
+            for actual_name, truth in [('per-game', actual), ('totals', actual_tot)]:
+                boards[(board_name, actual_name)] = r = ranking_metrics(truth, board)
+                print(f"    {board_name:8s} board vs {actual_name:8s} actual  rho {r['spearman']:.3f}  "
+                      f"top-50 {100*r['top_n'].get(50, float('nan')):5.1f}%  "
+                      f"top-100 {100*r['top_n'].get(100, float('nan')):5.1f}%")
         bb = bust_breakout_recall(actual, model_frame, base_frame)
         print(f"    bust/breakout direction recall: {100*bb['recall']:.1f}% "
               f"of {bb['n_movers']} movers")
         all_summaries[held_out]['_ranking'] = {'model': model_rank, 'baseline': base_rank,
-                                              'bust_breakout': bb}
+                                              'bust_breakout': bb, 'boards': boards}
 
     return {'dataset': dataset, 'baselines': report, 'summaries': all_summaries,
             'blocks': blocks_by_target, 'alphas': alpha_by_target}

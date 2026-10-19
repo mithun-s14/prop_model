@@ -396,7 +396,7 @@ def test_output_schema_matches_section_11(projection_frame, tmp_path):
     expected |= {'pred_fg_pct', 'pred_ft_pct'}
     expected |= {f'z_{c}' for c in ['PTS', 'REB', 'AST', 'STL', 'BLK', 'FG3M', 'TOV',
                                     'FG_PCT', 'FT_PCT']}
-    expected |= {'value_total', 'value_points_league',
+    expected |= {'value_total', 'value_total_gp', 'value_points_league',
                  'n_prior_seasons', 'team_changed', 'role_change', 'flags'}
     assert set(written.columns) == expected
     assert list(written.columns) == output_columns()
@@ -731,3 +731,14 @@ def test_summary_reports_gp_bias(dataset):
     preds, summaries = evaluate_transition(dataset, dataset, {}, {})
     expected = np.mean(preds['gp'] - dataset['target_gp'].to_numpy(dtype=float))
     assert summaries['gp']['bias'] == pytest.approx(expected)
+
+
+def test_board_carries_games_weighted_value(projection_frame):
+    from train_season_model import attach_fantasy_value
+    board = attach_fantasy_value(projection_frame)
+    assert board['value_total_gp'].notna().all()
+    missing = projection_frame.copy()
+    missing.loc[0, 'pred_gp'] = np.nan
+    board = attach_fantasy_value(missing)
+    assert np.isnan(board['value_total_gp'].iat[0])
+    assert board['value_total'].notna().all()

@@ -37,6 +37,11 @@ DEFAULT_EXCLUDE_FLAGS = ('NO_PRIOR_SEASON',)
 
 DEFAULT_POOL_SIZE = 156      # 12 teams x 13 roster spots
 
+# Scaled by games for a season-total board. FG_PCT/FT_PCT stay rates: their
+# impact is (rate - league) * attempts, so it scales through FGA/FTA.
+SEASON_TOTAL_COLUMNS = ['PTS', 'REB', 'AST', 'STL', 'BLK', 'FG3M', 'TOV', 'FGA', 'FTA']
+MAX_GAMES = 82
+
 
 def _flagged(df, exclude_flags):
     """Boolean mask of rows carrying any excluded flag."""
@@ -144,12 +149,35 @@ def points_league_value(projections, formula=None):
     return total
 
 
+def to_season_totals(per_game, games_col):
+    """Per-game frame -> season totals: counting columns times games clipped to [0, 82]."""
+    out = per_game.copy()
+    games = pd.to_numeric(out[games_col], errors='coerce').clip(0, MAX_GAMES)
+    for col in SEASON_TOTAL_COLUMNS:
+        if col in out.columns:
+            out[col] = pd.to_numeric(out[col], errors='coerce') * games
+    return out
+
+
 def build_value_frame(projections, pool_size=DEFAULT_POOL_SIZE, punt=None,
-                      exclude_flags=DEFAULT_EXCLUDE_FLAGS):
-    """Attach z-scores, 9-cat total, and points-league value to a projection frame."""
+                      exclude_flags=DEFAULT_EXCLUDE_FLAGS, games_col=None):
+    """
+    Attach z-scores, 9-cat total, and points-league value to a projection frame.
+
+    With `games_col`, also attaches `value_total_gp`: the same 9-cat total on
+    season totals (per-game x games), pool picked by total PTS. Rows with no
+    games value get NaN, never 0. The per-game `value_total` stays the default
+    board; see train_season_model.attach_fantasy_value for the measured numbers.
+    """
     df = projections.copy().reset_index(drop=True)
     z = category_zscores(df, pool_size=pool_size, exclude_flags=exclude_flags)
     df = pd.concat([df, z], axis=1)
     df['value_total'] = total_value(z, punt=punt)
     df['value_points_league'] = points_league_value(df)
+    if games_col is not None:
+        totals = to_season_totals(projections.reset_index(drop=True), games_col)
+        z_tot = category_zscores(totals, pool_size=pool_size, exclude_flags=exclude_flags)
+        value = total_value(z_tot, punt=punt)
+        value[totals[games_col].isna().to_numpy()] = np.nan
+        df['value_total_gp'] = value
     return df

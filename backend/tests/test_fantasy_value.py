@@ -242,3 +242,70 @@ def test_identical_players_produce_zero_not_nan():
     z = category_zscores(pool, pool_size=None)
     assert z['z_BLK'].notna().all()
     assert (z['z_BLK'] == 0).all()
+
+
+# ---------------------------------------------------------------------------
+# Games-weighted (season-total) value
+# ---------------------------------------------------------------------------
+
+from fantasy_value import to_season_totals  # noqa: E402
+
+
+def test_equal_games_ranks_like_per_game_value():
+    pool = make_pool().assign(GP=70.0)
+    frame = build_value_frame(pool, pool_size=40, games_col='GP')
+    assert (frame['value_total'].rank() == frame['value_total_gp'].rank()).all()
+
+
+def test_more_games_means_more_total_value():
+    pool = make_pool()
+    twin = pool.iloc[[0]].copy().assign(player='Iron Man')
+    pool = pd.concat([pool, twin], ignore_index=True).assign(GP=60.0)
+    pool.loc[pool['player'] == 'Iron Man', 'GP'] = 80.0
+    frame = build_value_frame(pool, pool_size=None, games_col='GP').set_index('player')
+    assert frame.loc['Iron Man', 'value_total'] == pytest.approx(frame.loc['Player 0', 'value_total'])
+    assert frame.loc['Iron Man', 'value_total_gp'] > frame.loc['Player 0', 'value_total_gp']
+
+
+def test_percentages_stay_rates_and_scale_through_attempts():
+    pool = make_pool(n=5).assign(GP=[10.0, 20.0, 30.0, 40.0, 50.0])
+    totals = to_season_totals(pool, 'GP')
+    assert np.allclose(totals['FG_PCT'], pool['FG_PCT'])
+    assert np.allclose(totals['FGA'], pool['FGA'] * pool['GP'])
+    assert np.allclose(totals['FTA'], pool['FTA'] * pool['GP'])
+
+
+def test_percentage_impact_doubles_with_games_not_rate():
+    pool = make_pool(n=30).assign(GP=50.0)
+    pool.loc[0, 'GP'] = 100.0                     # clipped to 82
+    totals = to_season_totals(pool, 'GP')
+    assert totals.loc[0, 'FGA'] == pytest.approx(pool.loc[0, 'FGA'] * 82)
+    assert totals.loc[0, 'FG_PCT'] == pool.loc[0, 'FG_PCT']
+
+
+def test_negative_games_clip_to_zero():
+    pool = make_pool(n=3).assign(GP=[-5.0, 10.0, 20.0])
+    assert to_season_totals(pool, 'GP').loc[0, 'PTS'] == 0.0
+
+
+def test_missing_games_gives_nan_not_zero():
+    pool = make_pool().assign(GP=65.0)
+    pool.loc[3, 'GP'] = np.nan
+    frame = build_value_frame(pool, pool_size=None, games_col='GP')
+    assert np.isnan(frame.loc[3, 'value_total_gp'])
+    assert frame.drop(index=3)['value_total_gp'].notna().all()
+
+
+def test_excluded_flags_are_nan_in_games_weighted_value():
+    pool = make_pool().assign(GP=65.0)
+    pool.loc[0, 'flags'] = 'NO_PRIOR_SEASON'
+    frame = build_value_frame(pool, pool_size=None, games_col='GP')
+    assert np.isnan(frame.loc[0, 'value_total_gp'])
+
+
+def test_games_col_leaves_existing_columns_unchanged():
+    pool = make_pool().assign(GP=np.linspace(20, 82, 60))
+    before = build_value_frame(pool, pool_size=40)
+    after = build_value_frame(pool, pool_size=40, games_col='GP')
+    pd.testing.assert_frame_equal(before, after.drop(columns='value_total_gp'))
+    assert 'value_total_gp' not in before.columns
