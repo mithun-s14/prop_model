@@ -90,6 +90,13 @@ TOP_TIER_CUTOFF = 25
 TOP_TIER_MODEL_WEIGHT = 0.5
 TOP_TIER_FLAG = 'TOP_TIER_BLEND'
 
+# Fit without sample weights. The weight is target_gp / 41, so for the GP target
+# it is computed from the label itself and downweights exactly the short seasons
+# the GP model has to learn, biasing it high. Season totals multiply by pred_gp,
+# which needs the mean, not the weighted fit. Measured on all 7 transitions:
+# GP bias (pred - actual) +1.65 -> +0.14 games, MAE 12.287 -> 12.315.
+UNWEIGHTED_TARGETS = {'gp'}
+
 
 def columns_for_blocks(blocks):
     """Flatten block names into their feature columns."""
@@ -168,11 +175,16 @@ def fit_ridge(train_df, test_df, columns, target, alpha, use_weights=True,
     the 7-transition evaluation it matched or beat the level-target fit on every
     ranking metric at no MAE cost (section 15 of the design doc), though the
     ranking gain is within noise.
+
+    Targets in UNWEIGHTED_TARGETS ignore `sample_weight` regardless of
+    `use_weights`, so every caller (selection, CV, intervals, final fit) agrees.
     """
     scaler = StandardScaler()
     x_train = scaler.fit_transform(train_df[columns])
     x_test = scaler.transform(test_df[columns])
-    weights = train_df['sample_weight'].to_numpy(dtype=float) if use_weights else None
+    weights = None
+    if use_weights and target not in UNWEIGHTED_TARGETS:
+        weights = train_df['sample_weight'].to_numpy(dtype=float)
     y = train_df[f'target_{target}'].to_numpy(dtype=float)
     if residual:
         y = y - train_df[f'baseline_{target}'].to_numpy(dtype=float)
@@ -441,6 +453,7 @@ def evaluate_transition(train_df, test_df, blocks_by_target, alpha_by_target):
             'vs_carry_forward': compare_to_baseline(actual, pred, carry_forward_baseline(test_df, target)),
             'vs_shrunk': compare_to_baseline(actual, pred, shrunk_baseline(train_df, test_df, target)),
             'vs_minutes': compare_to_baseline(actual, pred, minutes_weighted_baseline(train_df, test_df, target)),
+            'bias': float(np.mean(np.asarray(pred, dtype=float) - actual.to_numpy(dtype=float))),
             'blocks': blocks, 'alpha': alpha,
         }
     return predictions, summaries
@@ -800,7 +813,8 @@ def _print_target_summary(target, summary):
     verdict = 'BEATS' if sh['improvement'] > 0 and sh['p_value'] < 0.05 else '     '
     print(f"  {target:5s} model {cf['model_mae']:7.3f} | carry {cf['baseline_mae']:7.3f} "
           f"({cf['improvement']:+.3f}) | shrunk {sh['baseline_mae']:7.3f} "
-          f"({sh['improvement']:+.3f}, p={sh['p_value']:.3f}) {verdict}")
+          f"({sh['improvement']:+.3f}, p={sh['p_value']:.3f}) {verdict} "
+          f"bias {summary['bias']:+.3f}")
 
 
 def run(gamelog_path=GAMELOG_PATH, verbose=True, select=True, forward_only=False):

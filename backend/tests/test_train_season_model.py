@@ -672,3 +672,62 @@ def test_walk_forward_skips_folds_with_too_little_training_data():
 def test_walk_forward_returns_nothing_without_enough_seasons():
     data = _synthetic_transitions([2020, 2021])
     assert walk_forward(data) == []
+
+
+# ---------------------------------------------------------------------------
+# GP target is fit unweighted (its weight is derived from the label)
+# ---------------------------------------------------------------------------
+
+from train_season_model import UNWEIGHTED_TARGETS  # noqa: E402
+
+
+def _weighted_frame(seed=3, n=200):
+    rng = np.random.default_rng(seed)
+    x = rng.normal(0, 1, n)
+    gp = np.clip(60 + 8 * x + rng.normal(0, 15, n), 15, 82)
+    pts = 15 + 3 * x + rng.normal(0, 2, n)
+    return pd.DataFrame({'x': x, 'target_gp': gp, 'baseline_gp': np.full(n, 60.0),
+                         'target_pts': pts, 'baseline_pts': np.full(n, 15.0),
+                         'sample_weight': np.clip(gp, None, 41) / 41})
+
+
+def test_gp_is_in_unweighted_targets():
+    assert 'gp' in UNWEIGHTED_TARGETS
+    assert 'pts' not in UNWEIGHTED_TARGETS
+
+
+def test_gp_predictions_ignore_sample_weight():
+    df = _weighted_frame()
+    flat = df.assign(sample_weight=1.0)
+    wild = df.assign(sample_weight=np.linspace(0.01, 1.0, len(df)))
+    a = fit_ridge(flat, df, ['x'], 'gp', alpha=1.0)
+    b = fit_ridge(wild, df, ['x'], 'gp', alpha=1.0)
+    assert np.allclose(a, b)
+
+
+def test_pts_predictions_still_use_sample_weight():
+    df = _weighted_frame()
+    flat = df.assign(sample_weight=1.0)
+    wild = df.assign(sample_weight=np.linspace(0.01, 1.0, len(df)))
+    a = fit_ridge(flat, df, ['x'], 'pts', alpha=1.0)
+    b = fit_ridge(wild, df, ['x'], 'pts', alpha=1.0)
+    assert not np.allclose(a, b)
+
+
+def test_unweighted_gp_mean_is_closer_to_target_mean():
+    """Weighting by target_gp/41 tilts the fit toward long seasons and over-projects."""
+    from sklearn.linear_model import Ridge
+    df = _weighted_frame()
+    unweighted = fit_ridge(df, df, ['x'], 'gp', alpha=1.0)
+    weighted = Ridge(alpha=1.0).fit(df[['x']], df['target_gp'] - 60,
+                                    sample_weight=df['sample_weight']).predict(df[['x']]) + 60
+    target_mean = df['target_gp'].mean()
+    assert abs(unweighted.mean() - target_mean) < abs(weighted.mean() - target_mean)
+    assert weighted.mean() > target_mean
+
+
+def test_summary_reports_gp_bias(dataset):
+    from train_season_model import evaluate_transition
+    preds, summaries = evaluate_transition(dataset, dataset, {}, {})
+    expected = np.mean(preds['gp'] - dataset['target_gp'].to_numpy(dtype=float))
+    assert summaries['gp']['bias'] == pytest.approx(expected)

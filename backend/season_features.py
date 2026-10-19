@@ -21,7 +21,8 @@ Design notes (see markdowns/season_projection_model.md):
     characterise a player) but only >= 15 GP in the target season. A higher
     target bar looks like it buys label quality, but it actually induces
     survivorship bias by dropping players who got hurt or lost a rotation spot.
-    Noisy short-season labels are handled by `sample_weight` instead.
+    Noisy short-season labels are handled by `sample_weight` instead (except for
+    the GP target itself, which is fit unweighted -- see train_season_model).
   - `team_changed` is derived from the game logs for training rows -- 34% of
     paired player-seasons changed teams -- so no manual input is needed to
     measure its effect. It is carried as a column, not fitted as a feature: it
