@@ -31,6 +31,7 @@ import pandas as pd
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 ROSTER_CHANGES_PATH = os.path.join(DATA_DIR, 'roster_changes_2027.csv')
+PROJECTIONS_PATH = os.path.join(DATA_DIR, 'season_projections_2027.csv')
 
 # Basketball Reference team codes -- NOT the broadcast abbreviations. Three
 # differ from what a user would naturally type, so they are mapped with a
@@ -431,14 +432,72 @@ def _widen_interval(df, i, case):
         df.at[i, high_col] = point + (float(df.at[i, high_col]) - point) * multiplier
 
 
-def main():
-    """`python -m backend.roster_changes --validate`"""
+def _last_teams(gamelog_df):
+    """player_id and name -> team of their most recent logged game."""
+    if gamelog_df is None or gamelog_df.empty:
+        return {}
+    df = gamelog_df.assign(_date=pd.to_datetime(gamelog_df['GAME_DATE'], format='mixed',
+                                                errors='coerce')).sort_values('_date')
+    last = df.groupby('PLAYER_NAME')['team'].last().to_dict()
+    if 'Player_ID' in df.columns:
+        last.update(df.groupby('Player_ID')['team'].last().to_dict())
+    return last
+
+
+def needs_role_report(changes_df, projections_path=PROJECTIONS_PATH, top=25, gamelog_df=None):
+    """
+    Roster-file players with no role hint yet, most valuable first. Read-only.
+
+    A row needs a hint when `role_change` is 'unknown' and `min_override` is
+    empty. Joined to the projection board by player_id, falling back to name;
+    players missing from the board sort last with NaN value. The board's
+    `team_prev` already holds the NEW team, so the old team comes from the
+    player's last game in `gamelog_df` (NaN without it).
+    """
+    if not os.path.exists(projections_path):
+        raise FileNotFoundError(f"no projections file at {projections_path} -- run "
+                                f"`python train_season_model.py --project` first")
+    board = pd.read_csv(projections_path)
+    need = changes_df[(changes_df['role_change'].fillna('unknown') == 'unknown')
+                      & changes_df['min_override'].isna()].copy()
+    ids = set(board['player_id'].dropna())
+    need['_key'] = np.where(need['player_id'].isin(ids), need['player_id'], need['player_name'])
+    cols = ['min_prev', 'pred_min', 'value_total']
+    keyed = pd.concat([board.assign(_key=board['player_id']), board.assign(_key=board['player'])])
+    keyed = keyed.dropna(subset=['_key']).drop_duplicates('_key')[['_key'] + cols]
+    out = need.merge(keyed, on='_key', how='left')
+    last = _last_teams(gamelog_df)
+    out['old_team'] = [last.get(pid, last.get(name)) for pid, name
+                       in zip(out['player_id'], out['player_name'])]
+    out = out.rename(columns={'player_name': 'player'})
+    out = out.sort_values('value_total', ascending=False, na_position='last')
+    return out[['player', 'old_team', 'new_team', 'change_type', 'min_prev', 'pred_min',
+                'value_total']].head(top).reset_index(drop=True)
+
+
+def main(argv=None):
+    """`python -m backend.roster_changes --validate` or `--needs-role [--top N]`"""
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--validate', action='store_true', help='check the file and exit')
+    parser.add_argument('--needs-role', action='store_true',
+                        help='list players still missing a role hint, by projected value')
+    parser.add_argument('--top', type=int, default=25)
+    parser.add_argument('--projections', default=PROJECTIONS_PATH)
     parser.add_argument('--path', default=ROSTER_CHANGES_PATH)
     parser.add_argument('--gamelog', default=os.path.join(DATA_DIR, 'historical_player_gamelogs.csv'))
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+
+    if args.needs_role:
+        gamelog_df = pd.read_csv(args.gamelog) if os.path.exists(args.gamelog) else None
+        try:
+            report = needs_role_report(load_roster_changes(args.path, warn=False),
+                                       args.projections, top=args.top, gamelog_df=gamelog_df)
+        except FileNotFoundError as err:
+            print(f"error: {err}")
+            return 1
+        print(report.to_string(index=False, float_format=lambda v: f'{v:.2f}'))
+        return 0
 
     gamelog_df = pd.read_csv(args.gamelog) if os.path.exists(args.gamelog) else None
     changes = load_roster_changes(args.path, gamelog_df=gamelog_df)

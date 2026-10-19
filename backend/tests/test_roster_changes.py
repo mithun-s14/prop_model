@@ -543,3 +543,91 @@ def test_next_teams_maps_moves_and_marks_non_players_none():
 def test_next_teams_empty_input():
     assert next_teams(None) == {}
     assert next_teams(pd.DataFrame(columns=['player_name', 'new_team'])) == {}
+
+
+# ---------------------------------------------------------------------------
+# --needs-role report
+# ---------------------------------------------------------------------------
+
+from roster_changes import main as roster_main, needs_role_report  # noqa: E402
+from tests.conftest import make_player_season  # noqa: E402
+
+
+def _role_files(tmp_path):
+    changes = write_changes(tmp_path, [
+        {'player_name': 'Low Lou', 'player_id': 'lowlo01', 'new_team': 'BOS', 'change_type': 'trade'},
+        {'player_name': 'Top Tim', 'player_id': 'topti01', 'new_team': 'MIA', 'change_type': 'free_agency'},
+        {'player_name': 'Done Dan', 'player_id': 'donda01', 'new_team': 'LAL', 'change_type': 'trade',
+         'role_change': 'larger'},
+        {'player_name': 'Set Sid', 'player_id': 'setsi01', 'new_team': 'LAL', 'change_type': 'trade',
+         'min_override': 30},
+        {'player_name': 'Ghost Gus', 'player_id': 'ghost01', 'new_team': 'NYK', 'change_type': 'trade'},
+        {'player_name': 'Mid Max', 'player_id': 'midma01', 'new_team': 'DEN', 'change_type': 'trade'},
+    ])
+    board = tmp_path / 'season_projections_2027.csv'
+    pd.DataFrame({
+        'player': ['Top Tim', 'Mid Max', 'Low Lou', 'Done Dan', 'Set Sid'],
+        'player_id': ['topti01', 'midma01', 'lowlo01', 'donda01', 'setsi01'],
+        'team_prev': ['MIA', 'DEN', 'BOS', 'LAL', 'LAL'],
+        'min_prev': [34.0, 28.0, 15.0, 30.0, 25.0],
+        'pred_min': [33.0, 27.5, 16.0, 30.0, 25.0],
+        'value_total': [5.0, 1.0, -3.0, 4.0, 2.0],
+    }).to_csv(board, index=False)
+    log = pd.concat([make_player_season('Top Tim', 2026, 30, team='PHI', player_id='topti01'),
+                     make_player_season('Low Lou', 2026, 30, team='CHI', player_id='lowlo01')])
+    return load_roster_changes(changes, warn=False), board, log
+
+
+def test_needs_role_sorts_by_value_and_drops_filled_rows(tmp_path):
+    changes, board, log = _role_files(tmp_path)
+    out = needs_role_report(changes, board, gamelog_df=log)
+    assert out['player'].tolist() == ['Top Tim', 'Mid Max', 'Low Lou', 'Ghost Gus']
+    assert list(out.columns) == ['player', 'old_team', 'new_team', 'change_type',
+                                 'min_prev', 'pred_min', 'value_total']
+    assert out.loc[0, 'old_team'] == 'PHI' and out.loc[0, 'new_team'] == 'MIA'
+
+
+def test_needs_role_puts_players_missing_from_board_last_with_nan(tmp_path):
+    changes, board, log = _role_files(tmp_path)
+    out = needs_role_report(changes, board, gamelog_df=log)
+    ghost = out.iloc[-1]
+    assert ghost['player'] == 'Ghost Gus'
+    assert np.isnan(ghost['value_total']) and np.isnan(ghost['pred_min'])
+
+
+def test_needs_role_top_limits_rows(tmp_path):
+    changes, board, log = _role_files(tmp_path)
+    assert needs_role_report(changes, board, top=2, gamelog_df=log)['player'].tolist() == [
+        'Top Tim', 'Mid Max']
+
+
+def test_needs_role_without_gamelog_leaves_old_team_empty(tmp_path):
+    changes, board, _ = _role_files(tmp_path)
+    out = needs_role_report(changes, board)
+    assert out['old_team'].isna().all()
+
+
+def test_needs_role_missing_projections_is_a_clear_error(tmp_path):
+    changes, _, _ = _role_files(tmp_path)
+    with pytest.raises(FileNotFoundError, match='--project'):
+        needs_role_report(changes, tmp_path / 'nope.csv')
+
+
+def test_needs_role_cli_reports_missing_board_without_traceback(tmp_path, capsys):
+    _role_files(tmp_path)
+    code = roster_main(['--needs-role', '--path', str(tmp_path / 'roster_changes_2027.csv'),
+                        '--projections', str(tmp_path / 'nope.csv'),
+                        '--gamelog', str(tmp_path / 'no_log.csv')])
+    assert code == 1
+    assert 'error: no projections file' in capsys.readouterr().out
+
+
+def test_needs_role_cli_is_read_only(tmp_path, capsys):
+    _, board, _ = _role_files(tmp_path)
+    changes_path = tmp_path / 'roster_changes_2027.csv'
+    before = (changes_path.read_bytes(), board.read_bytes())
+    code = roster_main(['--needs-role', '--top', '1', '--path', str(changes_path),
+                        '--projections', str(board), '--gamelog', str(tmp_path / 'no_log.csv')])
+    assert code == 0
+    assert 'Top Tim' in capsys.readouterr().out
+    assert (changes_path.read_bytes(), board.read_bytes()) == before
