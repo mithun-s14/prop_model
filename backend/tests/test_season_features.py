@@ -599,3 +599,73 @@ def test_training_and_inference_experience_agree(multi_season_gamelog, season_pl
         assert serve['experience_years'] == train['experience_years']
     sam = ds[ds['player'] == 'Steady Sam'].set_index('target_season')['experience_years']
     assert sam[2026] - sam[2025] == 1      # fixture snapshot is 8
+
+
+# ---------------------------------------------------------------------------
+# AVAIL block
+# ---------------------------------------------------------------------------
+
+from season_features import MISSED_20_GP, SEASON_FEATURE_BLOCKS  # noqa: E402
+
+
+def _avail_log():
+    return pd.concat([
+        make_player_season('Hurt Harry', 2024, 50, minutes=30, team='LAL'),
+        make_player_season('Hurt Harry', 2025, 55, minutes=32, team='LAL'),
+        make_player_season('Hurt Harry', 2026, 60, minutes=30, team='LAL'),
+        make_player_season('Edge Ed', 2024, MISSED_20_GP + 1, team='BOS'),
+        make_player_season('Edge Ed', 2025, MISSED_20_GP, team='BOS'),
+        make_player_season('Edge Ed', 2026, 70, team='BOS'),
+        make_player_season('New Ned', 2025, 40, minutes=25, team='MIA'),
+        make_player_season('New Ned', 2026, 70, team='MIA'),
+    ], ignore_index=True)
+
+
+def _avail_info():
+    return pd.DataFrame({'player_id': ['hurthar', 'edgeed', 'newned'],
+                         'player_name': ['Hurt Harry', 'Edge Ed', 'New Ned'],
+                         'birth_date': ['February 1, 1996'] * 3,
+                         'experience': ['8', '8', '1']})
+
+
+def test_avail_block_is_registered():
+    assert SEASON_FEATURE_BLOCKS['AVAIL'] == ['gp_prev2', 'load_min_prev',
+                                              'age_x_min_prev', 'missed_20_both']
+    assert set(SEASON_FEATURE_BLOCKS['AVAIL']) <= set(SEASON_FEATURE_COLUMNS)
+
+
+def test_avail_matches_hand_computed_values():
+    ds = build_season_dataset(_avail_log(), player_info=_avail_info())
+    harry = ds[(ds['player'] == 'Hurt Harry') & (ds['target_season'] == 2026)].iloc[0]
+    assert harry['gp_prev'] == 55 and harry['gp_prev2'] == 50
+    assert harry['load_min_prev'] == pytest.approx(55 * 32)
+    assert harry['age_x_min_prev'] == pytest.approx((harry['age'] - 27) * 32)
+    assert harry['age'] == pytest.approx(30.0, abs=0.01)    # born Feb 1 1996
+    assert harry['missed_20_both'] == 1
+
+
+def test_missed_20_both_threshold_is_inclusive_on_both_seasons():
+    ds = build_season_dataset(_avail_log(), player_info=_avail_info())
+    ed = ds[ds['player'] == 'Edge Ed'].set_index('target_season')
+    assert ed.loc[2026, 'gp_prev'] == MISSED_20_GP
+    assert ed.loc[2026, 'missed_20_both'] == 0          # 2024 had 63 games
+    assert ed.loc[2025, 'missed_20_both'] == 0          # no season two back
+
+
+def test_no_prior2_season_falls_back_to_gp_prev():
+    ds = build_season_dataset(_avail_log(), player_info=_avail_info())
+    ned = ds[ds['player'] == 'New Ned'].iloc[0]
+    assert ned['has_prev2'] == 0
+    assert ned['gp_prev2'] == ned['gp_prev'] == 40
+    assert ned['missed_20_both'] == 0
+
+
+def test_avail_training_and_inference_agree():
+    log, info = _avail_log(), _avail_info()
+    ds = build_season_dataset(log, player_info=info)
+    inf = build_inference_features(log, feature_season=2025, player_info=info)
+    for player in ['Hurt Harry', 'Edge Ed']:
+        train = ds[(ds['player'] == player) & (ds['target_season'] == 2026)].iloc[0]
+        serve = inf[inf['player'] == player].iloc[0]
+        for col in SEASON_FEATURE_BLOCKS['AVAIL']:
+            assert serve[col] == pytest.approx(train[col]), (player, col)

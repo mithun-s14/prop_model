@@ -114,7 +114,17 @@ SEASON_FEATURE_BLOCKS = {
     # (the roster file at inference), never next season's stats. See
     # _attach_teammate_shots.
     'ROSTER': ['tm_shots_delta', 'tm_shots_delta_x_share'],
+    # Availability: games missed two years running and minutes load. Injury
+    # research mostly measures per-game odds, so the season-scale gain is small;
+    # select_blocks drops the block wherever it does not help. On all 7
+    # transitions it selects AVAIL for every target except BLK, FTM and FTA;
+    # held out, GP MAE 12.315 -> 12.274 and FGA 1.620 -> 1.616 improve while
+    # MIN 3.622 -> 3.634 and REB 0.810 -> 0.812 get slightly worse.
+    'AVAIL': ['gp_prev2', 'load_min_prev', 'age_x_min_prev', 'missed_20_both'],
 }
+
+# missed_20_both fires when both prior seasons had at most this many games
+MISSED_20_GP = 62
 
 SEASON_FEATURE_COLUMNS = [c for block in SEASON_FEATURE_BLOCKS.values() for c in block]
 
@@ -405,8 +415,9 @@ def _feature_frame(seasons, feature_season_rows, player_info, target_season, nex
     rows['min_2h_minus_1h'] = rows['min_2h_minus_1h']
 
     # --- PRIOR2: two seasons back ---
-    prev2 = seasons[['player', 'season', 'pts_mean', 'min_mean']].rename(
-        columns={'season': 'feature_season', 'pts_mean': 'pts_prev2', 'min_mean': 'min_prev2'}
+    prev2 = seasons[['player', 'season', 'pts_mean', 'min_mean', 'gp']].rename(
+        columns={'season': 'feature_season', 'pts_mean': 'pts_prev2', 'min_mean': 'min_prev2',
+                 'gp': 'gp_prev2'}
     )
     prev2['feature_season'] = prev2['feature_season'] + 1  # align to the row's feature season
     rows = rows.merge(prev2, on=['player', 'feature_season'], how='left')
@@ -414,6 +425,8 @@ def _feature_frame(seasons, feature_season_rows, player_info, target_season, nex
     rows['pts_delta_prev'] = (rows['pts_prev'] - rows['pts_prev2']).fillna(0.0)
     rows['pts_prev2'] = rows['pts_prev2'].fillna(0.0)
     rows['min_prev2'] = rows['min_prev2'].fillna(0.0)
+    # No season two back: assume last season's availability, not 0 games
+    rows['gp_prev2'] = rows['gp_prev2'].fillna(rows['gp_prev'])
 
     # --- CTX ---
     rows['fga_share_prev'] = rows['fga_share']
@@ -427,6 +440,12 @@ def _feature_frame(seasons, feature_season_rows, player_info, target_season, nex
 
     # --- AGE ---
     rows = _attach_age(rows, player_info, season_col='target_season')
+
+    # --- AVAIL (needs age) ---
+    rows['load_min_prev'] = rows['min_prev'] * rows['gp_prev']
+    rows['age_x_min_prev'] = (rows['age'] - 27) * rows['min_prev']
+    rows['missed_20_both'] = ((rows['gp_prev'] <= MISSED_20_GP) & (rows['gp_prev2'] <= MISSED_20_GP)
+                              & (rows['has_prev2'] == 1)).astype(int)
 
     # Ratio stats can be undefined (a season with zero FTA exists in the real
     # data). Impute to the pool median with a flag rather than leaving NaN --
