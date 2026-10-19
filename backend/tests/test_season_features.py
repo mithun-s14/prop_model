@@ -532,3 +532,70 @@ def test_inference_uses_supplied_next_teams(multi_season_gamelog, season_player_
                                      next_teams=everyone_gone)
     assert list(moved.columns) == list(base.columns)
     assert np.isfinite(moved['tm_shots_delta']).all()
+
+
+# ---------------------------------------------------------------------------
+# Experience as of each row's season (snapshot shifted per row)
+# ---------------------------------------------------------------------------
+
+from season_features import PLAYER_INFO_SNAPSHOT_SEASON, _attach_age  # noqa: E402
+
+
+def _age_rows(player_id, target_seasons):
+    return pd.DataFrame({'player': ['P'] * len(target_seasons),
+                         'player_id': [player_id] * len(target_seasons),
+                         'target_season': target_seasons})
+
+
+def _info(experience):
+    return pd.DataFrame({'player_id': ['p1'], 'player_name': ['P'],
+                         'birth_date': ['June 1, 1998'], 'experience': [experience]})
+
+
+def test_experience_is_shifted_to_each_target_season():
+    s = PLAYER_INFO_SNAPSHOT_SEASON
+    out = _attach_age(_age_rows('p1', [s, s - 1, s - 3]), _info('8'))
+    assert out['experience_years'].tolist() == [8, 7, 5]
+
+
+def test_experience_adds_years_after_the_snapshot():
+    s = PLAYER_INFO_SNAPSHOT_SEASON
+    out = _attach_age(_age_rows('p1', [s + 1]), _info('8'))
+    assert out['experience_years'].iloc[0] == 9
+
+
+def test_rookie_before_snapshot_is_clipped_and_counted(capsys):
+    s = PLAYER_INFO_SNAPSHOT_SEASON
+    out = _attach_age(_age_rows('p1', [s, s - 1]), _info('R'))
+    assert out['experience_years'].tolist() == [0, 0]
+    assert '1 rows predate' in capsys.readouterr().out
+
+
+def test_no_warning_when_nothing_is_clipped(capsys):
+    _attach_age(_age_rows('p1', [PLAYER_INFO_SNAPSHOT_SEASON]), _info('3'))
+    assert 'predate' not in capsys.readouterr().out
+
+
+def test_missing_experience_is_median_imputed():
+    s = PLAYER_INFO_SNAPSHOT_SEASON
+    rows = pd.concat([_age_rows('p1', [s]), _age_rows('nobody', [s]).assign(player='Q')],
+                     ignore_index=True)
+    out = _attach_age(rows, _info('6'))
+    assert out['experience_years'].tolist() == [6, 6]
+
+
+def test_unparseable_experience_is_median_imputed():
+    out = _attach_age(_age_rows('p1', [PLAYER_INFO_SNAPSHOT_SEASON]), _info('n/a'))
+    assert np.isfinite(out['experience_years']).all()
+
+
+def test_training_and_inference_experience_agree(multi_season_gamelog, season_player_info):
+    ds = build_season_dataset(multi_season_gamelog, player_info=season_player_info)
+    inf = build_inference_features(multi_season_gamelog, feature_season=2025,
+                                   player_info=season_player_info)
+    for player in ['Steady Sam', 'Moving Mike']:
+        train = ds[(ds['player'] == player) & (ds['target_season'] == 2026)].iloc[0]
+        serve = inf[inf['player'] == player].iloc[0]
+        assert serve['experience_years'] == train['experience_years']
+    sam = ds[ds['player'] == 'Steady Sam'].set_index('target_season')['experience_years']
+    assert sam[2026] - sam[2025] == 1      # fixture snapshot is 8

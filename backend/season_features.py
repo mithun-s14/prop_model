@@ -58,6 +58,15 @@ PARTIAL_SEASON_RATIO = 0.5
 # The per-season demeaning in _attach_teammate_shots removes what remains.
 ROTATION_SHOTS_PG = 5.0
 
+# Season end-year that cached_player_info.csv describes. `experience` follows
+# Basketball Reference's convention of counting PRIOR seasons ('R' = rookie):
+# Dyson Daniels (rookie 2022-23) shows 3, Stephon Castle (rookie 2024-25) 1,
+# Cooper Flagg 'R', which only fits 2025-26, matching cache_metadata.json.
+# Cross-checked against the game logs: for 375 players whose first logged season
+# is after 2019, 363 match 2026 - first_season exactly and 3 (0.8%) differ by
+# more than one year.
+PLAYER_INFO_SNAPSHOT_SEASON = 2026
+
 MIN_GP_FEATURE = 20   # enough history to profile a player
 MIN_GP_TARGET = 15    # deliberately looser -- a higher bar induces survivorship bias
 FULL_SEASON_GP = 41   # sample_weight saturates here (half a season)
@@ -265,7 +274,21 @@ def aggregate_player_seasons(gamelog_df, positions=None):
 
 def _attach_age(rows, player_info, season_col='target_season'):
     """
-    Age at Feb 1 of the target season, plus experience.
+    Age at Feb 1 of the target season, plus experience as of the target season.
+
+    `experience` in the player info file is a single snapshot taken in
+    PLAYER_INFO_SNAPSHOT_SEASON, so it is shifted by the season gap per row
+    (a 2020 row gets six fewer years than the snapshot, a 2027 row one more).
+    Assigning the raw snapshot to every row would be off by up to six years on
+    the oldest transitions. Rows that land below 0 are clipped and counted
+    (1 row on the full log).
+
+    Measured on all 7 transitions (leave-one-transition-out): ranking held or
+    improved (top-150 859 -> 862 hits, bust/breakout 570 -> 574 of 744) while
+    MAE rose slightly (PTS 2.1917 -> 2.2072, MIN 3.5765 -> 3.6221), consistent
+    across folds. Kept as a correctness fix: the snapshot gave every row of a
+    player the same value, which with age encodes career length -- the old MAE
+    was likely flattered by that.
 
     `cached_player_info.csv` covers ~87% of game-log player IDs, so missingness
     is flagged and imputed to the league median rather than silently zero-filled
@@ -295,7 +318,13 @@ def _attach_age(rows, player_info, season_col='target_season'):
 
         feb1 = pd.to_datetime(merged[season_col].astype(int).astype(str) + '-02-01')
         rows['age'] = (feb1 - merged['birth_dt']).dt.days / 365.25
-        rows['experience_years'] = merged['exp'].values
+        # The snapshot is one season; shift it to each row's own season
+        exp = (merged['exp'] - (PLAYER_INFO_SNAPSHOT_SEASON - merged[season_col].astype(int))).to_numpy()
+        n_negative = int((exp < 0).sum())
+        if n_negative:
+            print(f"  [season_features] {n_negative} rows predate the player's NBA career "
+                  f"by snapshot experience -- likely a name/ID mismatch; clipped to 0")
+        rows['experience_years'] = np.clip(exp, 0, None)
 
     rows['age_missing'] = rows['age'].isna().astype(int)
     median_age = rows['age'].median()
