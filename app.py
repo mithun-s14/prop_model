@@ -302,7 +302,7 @@ def predict_player_stats(player_name, target_stat, spread, total):
         return f"""<div style="color: #fca5a5; background: rgba(127,29,29,0.3); border: 1px solid #ef4444; border-radius: 8px; padding: 12px;">Error: {str(e)}</div>"""
 
 
-with gr.Blocks(css=custom_css, theme=gr.themes.Base(
+with gr.Blocks(title="NBA Predictive Analytics", css=custom_css, theme=gr.themes.Base(
     primary_hue="green",
     neutral_hue="zinc",
     font=gr.themes.GoogleFont("Inter"),
