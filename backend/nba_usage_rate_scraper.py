@@ -14,10 +14,12 @@ def scrape_nba_usage_rates():
     Returns a DataFrame with PLAYER, Team, and USGPCT columns.
     """
     print("Fetching NBA usage stats from Basketball Reference...")
+    # Wait for the table itself, not network idle: BBR's ad/tracker requests
+    # never settle on GitHub runners, so network_idle times out after 30s.
     page = StealthyFetcher.fetch(
         _BBR_URL,
         headless=True,
-        network_idle=True,
+        wait_selector='table#advanced',
     )
 
     tables = pd.read_html(StringIO(page.html_content), attrs={'id': 'advanced'})
