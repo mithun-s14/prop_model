@@ -60,11 +60,11 @@ jobs:
 
     - name: Commit and push if changed
       env:
-        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add backend/*.csv backend/*.json backend/*.xlsx
+        git add backend/data
 
         # Check if there are changes
         if ! git diff --quiet || ! git diff --staged --quiet; then
@@ -73,9 +73,8 @@ jobs:
           # Push to GitHub
           git push
 
-          # Push to Hugging Face using token
-          git remote add hf https://huggingface.co/spaces/mithun14/prop-model || git remote set-url hf https://huggingface.co/spaces/mithun14/prop-model
-          git push https://mithun14:${HF_TOKEN}@huggingface.co/spaces/mithun14/prop-model main --force
+          # Trigger Render redeploy
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
         else
           echo "No changes to commit"
         fi
