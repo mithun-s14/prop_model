@@ -1,20 +1,34 @@
 PLAYER,Team,USGPCT
+Tyrese Maxey,PHI,27.0
+Jaylen Brown,PHI,23.4
+Shai Gilgeous-Alexander,OKC,29.6
+VJ Edgecombe,PHI,15.1
+Joel Embiid,PHI,25.1
+LeBron James,PHI,23.6
+Jalen Williams,OKC,23.4
+Chet Holmgren,OKC,18.2
+Kentavious Caldwell-Pope,PHI,8.7
+Ajay Mitchell,OKC,21.6
+Alex Caruso,OKC,11.2
+Cason Wallace,OKC,16.4
+Anfernee Simons,PHI,15.9
 Paolo Banchero,ORL,24.0
-Tyrese Maxey,PHI,26.5
+Isaiah Hartenstein,OKC,18.7
+Jared McCain,OKC,20.7
 Julius Randle,BRK,30.0
 Jayson Tatum,BOS,28.9
 Trae Young,WAS,22.7
 Kevin Durant,HOU,28.0
-Shai Gilgeous-Alexander,OKC,34.8
+Jamal Murray,DEN,21.4
 Lauri Markkanen,UTA,25.3
 Brandon Miller,CHO,27.5
 Jabari Smith Jr.,HOU,23.4
 Derrick White,BOS,20.4
 Darius Acuff Jr.,SAC,36.2
-Jaylen Brown,PHI,21.6
 Cade Cunningham,DET,29.5
 Dyson Daniels,ATL,19.7
-VJ Edgecombe,PHI,14.4
+Nikola Jokić,DEN,27.5
+Donovan Mitchell,CLE,32.9
 Dennis Schröder,CHO,20.7
 Pascal Siakam,IND,33.8
 Jalen Brunson,NYK,28.6
@@ -22,8 +36,8 @@ Anthony Davis,WAS,35.2
 Moussa Diabaté,CHO,19.1
 Keon Ellis,BRK,10.0
 Tyrese Haliburton,IND,24.6
-LeBron James,PHI,20.8
 Zach LaVine,SAC,32.8
+Evan Mobley,CLE,18.0
 Dejounte Murray,NOP,27.4
 Andrew Nembhard,IND,18.4
 Michael Porter Jr.,BRK,32.3
@@ -32,15 +46,17 @@ Victor Wembanyama,SAS,26.7
 Ivica Zubac,IND,18.0
 Desmond Bane,ORL,23.9
 Cameron Boozer,MEM,21.5
+Christian Braun,DEN,15.4
 Mikal Bridges,NYK,9.6
 Anthony Edwards,MIN,40.4
-Joel Embiid,PHI,26.8
 Cooper Flagg,DAL,34.9
 Rudy Gobert,MIN,9.8
+James Harden,CLE,23.9
 Davion Mitchell,MIA,18.1
 Naz Reid,CHO,24.7
 Amen Thompson,HOU,19.2
 Ausar Thompson,DET,15.3
+Jaylin Williams,OKC,15.4
 OG Anunoby,NYK,19.0
 De'Aaron Fox,SAS,15.7
 Darius Garland,LAC,33.7
@@ -58,7 +74,6 @@ Caleb Wilson,CHI,34.9
 Bam Adebayo,MIA,21.3
 Wendell Carter Jr.,ORL,15.5
 Paul George,BOS,38.3
-Chet Holmgren,OKC,16.5
 Jaime Jaquez Jr.,MIL,22.0
 Darryn Peterson,UTA,14.1
 Devin Vassell,SAS,11.7
@@ -74,7 +89,7 @@ Yves Missi,NOP,11.7
 Alperen Şengün,HOU,28.9
 Day'Ron Sharpe,BRK,10.5
 Fred VanVleet,HOU,11.1
-Jalen Williams,OKC,22.9
+Peyton Watson,CLE,18.3
 Precious Achiuwa,SAC,16.2
 Grayson Allen,CHO,20.3
 LaMelo Ball,MIN,25.2
@@ -85,15 +100,18 @@ Bilal Coulibaly,WAS,10.4
 Ayo Dosunmu,MIN,20.0
 Keyonte George,UTA,26.3
 Kyshawn George,WAS,26.1
+Aaron Gordon,DEN,19.9
 Yaxel Lendeborg,GSW,17.0
 Naji Marshall,DAL,22.3
 Jaden McDaniels,MIN,17.0
 Onyeka Okongwu,ATL,14.7
 Keaton Wagler,LAC,15.7
 Franz Wagner,ORL,33.5
+Jarrett Allen,CLE,18.2
 Stephon Castle,SAS,35.5
 Cedric Coward,MEM,8.5
 Tristan Da Silva,ORL,18.2
+DeMar DeRozan,DEN,25.1
 Luguentz Dort,ATL,13.8
 Jalen Duren,DET,25.0
 Jaren Jackson Jr.,UTA,25.3
@@ -115,14 +133,12 @@ Zaccharie Risacher,DAL,16.0
 Andrew Wiggins,MIA,20.7
 Scottie Barnes,TOR,32.3
 RJ Barrett,TOR,25.8
-Kentavious Caldwell-Pope,PHI,14.5
 Jaxson Hayes,UTA,9.9
 Kasparas Jakučionis,MIL,16.8
 Derrick Jones Jr.,LAC,9.6
 Leonard Miller,CHI,19.5
 Marcus Smart,HOU,11.2
 Matas Buzelis,CHI,26.1
-Alex Caruso,OKC,8.0
 Sidy Cissoko,POR,4.8
 John Collins,DET,11.5
 Jalen Green,PHO,24.4
@@ -130,8 +146,8 @@ CJ McCollum,ATL,19.4
 Bobby Portis,MIA,12.1
 Gui Santos,GSW,17.4
 Landry Shamet,NYK,15.7
-Anfernee Simons,PHI,17.0
 Obi Toppin,IND,22.1
+Aday Mara,OKC,17.1
 Ace Bailey,UTA,22.3
 Saddiq Bey,NOP,20.5
 Andre Drummond,NYK,24.4
@@ -142,14 +158,16 @@ Nikola Jović,MIA,17.9
 Pelle Larsson,MIA,5.2
 Kawhi Leonard,TOR,33.8
 Damian Lillard,POR,25.6
+Sam Merrill,CLE,8.3
 Ryan Rollins,MIL,23.9
 Alex Sarr,WAS,15.4
 Marcus Sasser,DAL,16.9
 Karl-Anthony Towns,NYK,26.6
+Jaylon Tyson,CLE,14.8
 Ziaire Williams,LAL,16.2
+Adem Bona,PHI,5.3
 Deni Avdija,POR,34.7
 Toumani Camara,POR,19.1
-Ajay Mitchell,OKC,15.9
 Ja Morant,POR,15.8
 Matisse Thybulle,LAL,9.4
 Ja'Kobe Walter,TOR,16.0
@@ -157,7 +175,6 @@ Noah Clowney,BRK,7.5
 Daniel Gafford,DAL,7.4
 Jordan Goodwin,PHO,9.9
 Sandro Mamukelashvili,LAL,11.6
-Jared McCain,OKC,20.4
 Jakob Poeltl,TOR,3.9
 Norman Powell,CHI,24.4
 Neemias Queta,BOS,9.6
@@ -183,6 +200,7 @@ Bub Carrington,WAS,17.0
 Gradey Dick,LAC,19.2
 Allen Graves,TOR,11.5
 Scoot Henderson,POR,38.2
+Mario Hezonja,CLE,27.3
 GG Jackson II,MEM,27.0
 Isaiah Joe,DET,24.4
 Tre Johnson,WAS,17.0
@@ -192,7 +210,7 @@ Quinten Post,MEM,10.5
 Kobe Sanders,LAC,13.3
 Jalen Smith,CHI,24.1
 Jarace Walker,IND,21.8
-Cason Wallace,OKC,19.3
+Trevon Brazile,DEN,18.5
 Javonte Green,DET,26.8
 Tim Hardaway Jr.,MIA,16.8
 Sam Hauser,BOS,16.8
@@ -206,14 +224,12 @@ Mitchell Robinson,BOS,11.7
 Baylor Scheierman,BOS,12.0
 Brandon Williams,GSW,38.0
 Nique Clifford,SAC,24.7
-Isaiah Hartenstein,OKC,14.4
 Al Horford,GSW,9.4
 Herbert Jones,NOP,11.7
 Khaman Maluach,PHO,7.7
 Royce O'Neale,CHO,16.4
 Paul Reed,DET,14.2
 Emanuel Sharp,SAC,17.3
-Jaylin Williams,OKC,18.9
 Jose Alvarado,NYK,19.9
 Brayden Burries,MIL,23.6
 Isaiah Collier,UTA,34.0
@@ -246,6 +262,7 @@ Jase Richardson,ORL,14.0
 Jaylin Sellers,CHI,12.9
 Brice Sensabaugh,UTA,19.1
 Kel'el Ware,MIL,24.4
+Kenrich Williams,OKC,9.6
 Christian Anderson Jr.,CHO,15.3
 Bogdan Bogdanović,HOU,9.6
 Tre Jones,CHI,27.2
@@ -257,15 +274,16 @@ Rasheer Fleming,PHO,21.4
 Yang Hansen,POR,20.2
 Graham Ike,GSW,15.9
 Trey Lyles,MIN,5.9
-Aday Mara,OKC,20.0
 Khris Middleton,WAS,10.3
 Micah Potter,POR,13.5
 Ben Sheppard,IND,10.4
+Marvin Bagley III,DEN,19.2
 Jamison Battle,TOR,13.5
-Adem Bona,PHI,0.0
+Cameron Johnson,DEN,11.5
 Noa Essengue,CHI,6.8
 Hugo González,BOS,4.3
 Trayce Jackson-Davis,TOR,20.2
+Tyus Jones,DEN,12.7
 Harrison Barnes,SAS,4.5
 Zach Collins,CHI,0.0
 LJ Cryer,GSW,30.6
@@ -278,6 +296,8 @@ Jordan Clarkson,NYK,19.9
 Luka Garza,BOS,21.6
 Jonathan Mogbo,SAC,5.2
 Josh Okogie,UTA,5.6
+Craig Porter Jr.,CLE,10.0
+Jabari Walker,PHI,5.8
 Jamaree Bouyea,PHO,9.0
 Sergio de Larrea,DAL,6.2
 Jaden Hardy,LAL,24.7
@@ -285,7 +305,6 @@ Bronny James,LAL,12.4
 Jayson Kent,POR,34.6
 Koa Peat,PHO,24.9
 Pat Spencer,PHO,18.7
-Kenrich Williams,OKC,5.8
 Carter Bryant,SAS,20.3
 Chris Mañon,LAL,21.6
 Kyle Anderson,TOR,7.4
@@ -294,8 +313,11 @@ Chaney Johnson,BRK,34.0
 Alex Karaban,SAC,7.4
 Alijah Martin,TOR,28.8
 Larry Nance Jr.,IND,8.3
+Tyrese Proctor,CLE,8.0
 Nikola Vučević,ORL,0.0
 Bones Hyland,MIN,18.9
+Brooks Barnhizer,OKC,0.0
+Bennett Stirtz,OKC,13.9
 Moussa Cissé,DAL,27.0
 Jaylen Clark,MIN,34.8
 Ryan Conwell,MIA,14.4
@@ -307,18 +329,18 @@ Ron Holland,DET,27.3
 Liam McNeeley,CHO,13.3
 Nick Richards,MIA,28.7
 Bruce Thornton,HOU,13.9
-Jabari Walker,PHI,0.0
 Cody Williams,MIN,12.6
 Cam Christie,LAC,0.0
 Isaiah Evans,MIN,0.0
+DaRon Holmes,DEN,42.2
+Bryce Hopkins,DEN,0.0
 Nick Martinelli,LAC,21.1
+Ryan Nembhard,DEN,63.3
 Jalen Pickett,LAC,21.1
 Jericho Sims,MIL,0.0
 Jae'Sean Tate,HOU,20.9
-Brooks Barnhizer,OKC,0.0
 Maliq Brown,SAS,0.0
 Ja'Kobi Gillespie,SAS,81.4
 David Jones García,SAS,76.5
 Tarris Reed Jr.,SAS,0.0
-Bennett Stirtz,OKC,0.0
-League Average,,19.8
+League Average,,19.9
