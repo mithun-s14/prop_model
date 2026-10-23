@@ -34,8 +34,9 @@ def scrape_hashtag_basketball_table4():
             return positions_data
         largest = max(all_tables, key=lambda t: len(t.css('tr')))
 
-        # .get() returns the outer HTML of the element (Scrapy-compatible API)
-        table_html = largest.get()
+        # html_content is the element's outer HTML on both scrapling 0.2.x (CI)
+        # and 0.4.x; .get() returns the Adaptor itself on 0.2.x.
+        table_html = largest.html_content
         df_list = pd.read_html(StringIO(table_html))
 
         if not df_list:
