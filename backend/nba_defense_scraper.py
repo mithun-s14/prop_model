@@ -1,7 +1,10 @@
 from io import StringIO
 import pandas as pd
 import os
-from scrapling.fetchers import PlayWrightFetcher
+try:
+    from scrapling.fetchers import DynamicFetcher
+except ImportError:  # older scrapling only exposes the deprecated alias
+    from scrapling.fetchers import PlayWrightFetcher as DynamicFetcher
 
 
 def scrape_hashtag_basketball_table4():
@@ -14,7 +17,7 @@ def scrape_hashtag_basketball_table4():
 
     try:
         print("Loading Hashtag Basketball defense vs position page...")
-        page = PlayWrightFetcher.fetch(
+        page = DynamicFetcher.fetch(
             "https://hashtagbasketball.com/nba-defense-vs-position",
             headless=True,
             network_idle=True,
@@ -24,13 +27,15 @@ def scrape_hashtag_basketball_table4():
         all_tables = page.css('table')
         print(f"Found {len(all_tables)} tables on the page")
 
-        # Table 4 (index 3) contains position-based defense data with ~150 rows
-        if len(all_tables) < 4:
+        # The full position table (~150 rows) is the largest; the others are
+        # 5-row best/worst summaries whose count changes with site layout.
+        if not all_tables:
             print("'Position data' table not found!")
             return positions_data
+        largest = max(all_tables, key=lambda t: len(t.css('tr')))
 
         # .get() returns the outer HTML of the element (Scrapy-compatible API)
-        table_html = all_tables[3].get()
+        table_html = largest.get()
         df_list = pd.read_html(StringIO(table_html))
 
         if not df_list:
