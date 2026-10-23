@@ -21,8 +21,8 @@ to the output CSV as they arrive, so an interrupted run resumes where it left
 off instead of re-fetching. Re-running a completed season is a no-op.
 
 Usage:
-    python -m backend.historical_gamelog_scraper --seasons 2026 2025 2024
-    python -m backend.historical_gamelog_scraper --seasons 2026 --limit 5   # smoke test
+    python -m backend.historical_gamelog_scraper --seasons 2027 2026 2025
+    python -m backend.historical_gamelog_scraper --seasons 2027 --limit 5   # smoke test
     python -m backend.historical_gamelog_scraper --merge                    # fold into the cache
 """
 import argparse
@@ -332,8 +332,8 @@ def merge_into_cache(backfill_path=BACKFILL_PATH, cache_path=CACHE_PATH, output_
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--seasons', type=int, nargs='+', default=[2026],
-                        help='season end years, e.g. 2026 = the 2025-26 season')
+    parser.add_argument('--seasons', type=int, nargs='+', default=[2027],
+                        help='season end years, e.g. 2027 = the 2026-27 season')
     parser.add_argument('--limit', type=int, default=None,
                         help='cap players per season (smoke test)')
     parser.add_argument('--delay', type=float, default=DEFAULT_DELAY,

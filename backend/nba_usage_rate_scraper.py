@@ -4,7 +4,7 @@ import os
 from scrapling.fetchers import StealthyFetcher
 
 
-_BBR_URL = "https://www.basketball-reference.com/leagues/NBA_2026_advanced.html"
+_BBR_URL = "https://www.basketball-reference.com/leagues/NBA_2027_advanced.html"
 
 
 def scrape_nba_usage_rates():

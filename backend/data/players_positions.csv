@@ -8,24 +8,27 @@ nesmiaa01,Aaron Nesmith,SF
 wiggiaa01,Aaron Wiggins,SG
 baileac01,Ace Bailey,SF
 balad01,Adama-Alpha Bal,SG
+maraad01,Aday Mara,C
 bonaad01,Adem Bona,C
 thierad01,Adou Thiero,SF
 mitchaj01,Ajay Mitchell,SG
 horfoal01,Al Horford,C
 antetal01,Alex Antetokounmpo,SF
 carusal01,Alex Caruso,SG
+karabal01,Alex Karaban,SF
 moralal01,Alex Morales,PG
 sarral01,Alex Sarr,C
 martial01,Alijah Martin,SG
+graveal01,Allen Graves,PF
 willial06,Alondes Williams,SG
 sengual01,Alperen Şengün,C
 william01,Amari Williams,PF
-thompam01,Amen Thompson,PG
+thompam01,Amen Thompson,SF
 coffeam01,Amir Coffey,SG
 garcian01,Andersson Garcia,SF
 drumman01,Andre Drummond,C
 jacksan01,Andre Jackson Jr.,SG
-nembhan01,Andrew Nembhard,PG
+nembhan01,Andrew Nembhard,SG
 wiggian01,Andrew Wiggins,SF
 simonan01,Anfernee Simons,SG
 blackan01,Anthony Black,PG
@@ -38,13 +41,15 @@ newelas01,Asa Newell,PF
 thompau01,Ausar Thompson,SF
 reaveau01,Austin Reaves,SG
 dosunay01,Ayo Dosunmu,SG
+milleba01,Baba Miller,SF
 adebaba01,Bam Adebayo,C
 scheiba01,Baylor Scheierman,SG
 sarafbe01,Ben Saraf,SG
 sheppbe01,Ben Sheppard,SG
 mathube01,Bennedict Mathurin,SF
+stirtbe01,Bennett Stirtz,PG
 mbengbe01,Bez Mbeng,SG
-coulibi01,Bilal Coulibaly,SG
+coulibi01,Bilal Coulibaly,SF
 biyombi01,Bismack Biyombo,C
 hinsobl01,Blake Hinson,SF
 weslebl01,Blake Wesley,SG
@@ -59,11 +64,13 @@ clarkbr01,Brandon Clarke,PF
 ingrabr01,Brandon Ingram,SF
 millebr02,Brandon Miller,SF
 willibr03,Brandon Williams,PG
+burribr01,Brayden Burries,SG
 sensabr01,Brice Sensabaugh,SF
 jamesbr02,Bronny James,SG
 lopezbr01,Brook Lopez,C
 barnhbr01,Brooks Barnhizer,SG
 brownbr01,Bruce Brown,SG
+thornbr01,Bruce Thornton,PG
 mcgowbr01,Bryce McGowens,SG
 carrica01,Bub Carrington,PG
 boehebu01,Buddy Boeheim,SF
@@ -74,10 +81,12 @@ cunnica01,Cade Cunningham,PG
 houstca01,Caleb Houstan,SF
 loveca01,Caleb Love,SG
 martica02,Caleb Martin,SF
+wilsoca01,Caleb Wilson,PF
 chrisca02,Cam Christie,SG
 spencca01,Cam Spencer,SG
 thomaca02,Cam Thomas,SG
 whitmca01,Cam Whitmore,SF
+boozeca02,Cameron Boozer,PF
 johnsca02,Cameron Johnson,SF
 payneca01,Cameron Payne,PG
 leverca01,Caris LeVert,SG
@@ -87,12 +96,13 @@ cowarce01,Cedric Coward,SG
 johnsch06,Chaney Johnson,SF
 bassech01,Charles Bassey,C
 laniech01,Chaz Lanier,SG
-holmgch01,Chet Holmgren,PF
+holmgch01,Chet Holmgren,C
 bouchch01,Chris Boucher,PF
 livinch01,Chris Livingston,SF
 manonch01,Chris Mañon,SG
 paulch01,Chris Paul,PG
 youngch01,Chris Youngblood,SG
+anderch02,Christian Anderson Jr.,PG
 braunch01,Christian Braun,SG
 kolokch01,Christian Koloko,C
 hepbuch01,Chucky Hepburn,PG
@@ -118,13 +128,16 @@ plowdda01,Daeqwon Plowden,SG
 bantoda01,Dalano Banton,PG
 terryda01,Dalen Terry,SG
 knechda01,Dalton Knecht,SF
+lillada01,Damian Lillard,PG
 gaffoda01,Daniel Gafford,C
 jenkida01,Daniss Jenkins,PG
 wolfda01,Danny Wolf,PF
 saricda01,Dario Šarić,C
 whiteda01,Dariq Whitehead,SF
+acuffda01,Darius Acuff Jr.,PG
 brownda04,Darius Brown II,SG
 garlada01,Darius Garland,PG
+peterda02,Darryn Peterson,SG
 jonesda06,David Jones García,SF
 roddyda01,David Roddy,PF
 mitchda01,Davion Mitchell,PG
@@ -163,7 +176,7 @@ eubandr01,Drew Eubanks,C
 peterdr01,Drew Peterson,PF
 timmedr01,Drew Timme,PF
 smithdr01,Dru Smith,SG
-robindu01,Duncan Robinson,SG
+robindu01,Duncan Robinson,SF
 reathdu01,Duop Reath,C
 poweldw01,Dwight Powell,C
 cardwdy01,Dylan Cardwell,C
@@ -174,11 +187,13 @@ liddeej01,E.J. Liddell,PF
 demineg01,Egor Dëmin,PG
 harklej01,Elijah Harkless,SG
 milleem01,Emanuel Miller,PF
+sharpem01,Emanuel Sharp,SG
 freemen01,Enrique Freeman,PF
 gordoer01,Eric Gordon,SG
 thompet01,Ethan Thompson,SG
 mobleev01,Evan Mobley,PF
 wagnefr01,Franz Wagner,SF
+vanvlfr01,Fred VanVleet,PG
 jacksgg01,GG Jackson II,PF
 vincega01,Gabe Vincent,PG
 templga01,Garrett Temple,SG
@@ -186,9 +201,11 @@ mathega01,Garrison Mathews,SG
 harriga01,Gary Harris,SG
 paytoga02,Gary Payton II,SG
 trentga02,Gary Trent Jr.,SG
+niangge01,Georges Niang,PF
 antetgi01,Giannis Antetokounmpo,PF
 bitadgo01,Goga Bitadze,C
 dickgr01,Gradey Dick,SG
+ikegr01,Graham Ike,UNK
 nelsogr02,Grant Nelson,PF
 willigr01,Grant Williams,PF
 allengr01,Grayson Allen,SG
@@ -199,7 +216,7 @@ ingraha01,Harrison Ingram,SF
 grayha01,Hayden Gray,SG
 highsha01,Haywood Highsmith,SF
 joneshe01,Herbert Jones,SF
-gonzahu01,Hugo González,SF
+gonzahu01,Hugo González,SG
 dickihu01,Hunter Dickinson,C
 sallihu01,Hunter Sallis,SG
 tysonhu01,Hunter Tyson,PF
@@ -208,6 +225,7 @@ jonesis01,Isaac Jones,PF
 okorois01,Isaac Okoro,SG
 colliis01,Isaiah Collier,PG
 crawfis01,Isaiah Crawford,SF
+evansis01,Isaiah Evans,SG
 harteis01,Isaiah Hartenstein,C
 jacksis01,Isaiah Jackson,C
 joeis01,Isaiah Joe,SG
@@ -218,9 +236,11 @@ zubaciv01,Ivica Zubac,C
 davisjd01,JD Davison,PG
 moranja01,Ja Morant,PG
 walteja01,Ja'Kobe Walter,SG
+gilleja02,Ja'Kobi Gillespie,PG
 smithja05,Jabari Smith Jr.,PF
-walkeja01,Jabari Walker,PF
+walkeja01,Jabari Walker,SF
 toppija01,Jacob Toppin,SF
+bradlja02,Jaden Bradley,PG
 hardyja02,Jaden Hardy,SG
 iveyja01,Jaden Ivey,SG
 mcdanja02,Jaden McDaniels,PF
@@ -263,6 +283,7 @@ huffja01,Jay Huff,C
 brownja02,Jaylen Brown,SF
 clarkja02,Jaylen Clark,SG
 wellsja01,Jaylen Wells,SG
+selleja01,Jaylin Sellers,PG
 willija07,Jaylin Williams,PF
 tysonja01,Jaylon Tyson,SG
 kentja01,Jayson Kent,SF
@@ -296,12 +317,12 @@ goodwjo01,Jordan Goodwin,PG
 hawkijo01,Jordan Hawkins,SG
 mclaujo01,Jordan McLaughlin,PG
 millejo02,Jordan Miller,SF
-poolejo01,Jordan Poole,PG
+poolejo01,Jordan Poole,SG
 walshjo01,Jordan Walsh,PF
 alvarjo01,Jose Alvarado,PG
 giddejo01,Josh Giddey,PG
 greenjo02,Josh Green,SG
-hartjo01,Josh Hart,SF
+hartjo01,Josh Hart,SG
 minotjo01,Josh Minott,PF
 odurojo01,Josh Oduro,PF
 okogijo01,Josh Okogie,SG
@@ -319,8 +340,9 @@ richmka01,Kadary Richmond,SG
 joneska03,Kam Jones,SG
 townska01,Karl-Anthony Towns,C
 matkoka01,Karlo Matković,PF
-jakucka01,Kasparas Jakučionis,PG
+jakucka01,Kasparas Jakučionis,SG
 leonaka01,Kawhi Leonard,SF
+wagleke01,Keaton Wagler,SG
 wallake01,Keaton Wallace,PG
 murrake02,Keegan Murray,PF
 wareke01,Kel'el Ware,C
@@ -333,8 +355,8 @@ caldwke01,Kentavious Caldwell-Pope,SG
 elliske01,Keon Ellis,SG
 johnske10,Keshad Johnson,SF
 gilbeke01,Keshon Gilbert,SG
-duranke01,Kevin Durant,SF
-huertke01,Kevin Huerter,SF
+duranke01,Kevin Durant,PF
+huertke01,Kevin Huerter,SG
 loveke01,Kevin Love,PF
 mcculke01,Kevin McCullar Jr.,SF
 porteke02,Kevin Porter Jr.,PG
@@ -343,7 +365,9 @@ georgke01,Keyonte George,PG
 maluakh01,Khaman Maluach,C
 middlkh01,Khris Middleton,SF
 hayeski01,Killian Hayes,PG
+flemiki01,Kingston Flemings,PG
 thompkl01,Klay Thompson,SF
+peatko01,Koa Peat,PF
 brownko01,Kobe Brown,PF
 bufkiko01,Kobe Bufkin,SG
 sandeko01,Kobe Sanders,SG
@@ -356,7 +380,8 @@ anderky01,Kyle Anderson,SF
 filipky01,Kyle Filipowski,C
 kuzmaky01,Kyle Kuzma,PF
 lowryky01,Kyle Lowry,PG
-georgky01,Kyshawn George,SF
+irvinky01,Kyrie Irving,SG
+georgky01,Kyshawn George,SG
 cryerlj01,LJ Cryer,PG
 ballla01,LaMelo Ball,PG
 olbrila01,Lachlan Olbrich,C
@@ -382,15 +407,16 @@ smithma02,Malachi Smith,SG
 branhma01,Malaki Branham,SG
 leonsma01,Malevy Leons,SF
 monkma01,Malik Monk,SG
+brownma05,Maliq Brown,PF
 beaucma01,MarJon Beauchamp,SF
 sassema01,Marcus Sasser,PG
-smartma01,Marcus Smart,SG
+smartma01,Marcus Smart,PG
 searsma01,Mark Sears,PG
 willima07,Mark Williams,C
 fultzma01,Markelle Fultz,PG
 baglema01,Marvin Bagley III,PF
 plumlma01,Mason Plumlee,C
-buzelma01,Matas Buzelis,PF
+buzelma01,Matas Buzelis,SF
 thybuma01,Matisse Thybulle,SG
 chrisma02,Max Christie,SG
 shulgma01,Max Shulga,SG
@@ -402,18 +428,21 @@ pottemi01,Micah Potter,C
 portemi01,Michael Porter Jr.,SF
 bridgmi01,Mikal Bridges,SF
 conlemi01,Mike Conley,PG
-bridgmi02,Miles Bridges,PF
+brownmi02,Mikel Brown Jr.,PG
+bridgmi02,Miles Bridges,SF
 kellymi02,Miles Kelly,PG
-mcbrimi01,Miles McBride,SG
+mcbrimi01,Miles McBride,PG
 robinmi01,Mitchell Robinson,C
 bambamo01,Mo Bamba,C
 diawamo01,Mohamed Diawara,SF
 morrimo01,Monte Morris,PG
+johnsmo01,Morez Johnson Jr.,PF
 wagnemo01,Moritz Wagner,C
 moodymo01,Moses Moody,SG
 gueyemo01,Mouhamadou Gueye,PF
 gueyemo02,Mouhamed Gueye,PF
 cissemo01,Moussa Cisse,C
+cissemo01,Moussa Cissé,C
 diabamo01,Moussa Diabaté,C
 turnemy01,Myles Turner,C
 gardnmy01,Myron Gardner,SF
@@ -424,6 +453,7 @@ willije02,Nate Williams,SG
 reidna01,Naz Reid,C
 quetane01,Neemias Queta,C
 claxtni01,Nic Claxton,C
+martini01,Nick Martinelli,UNK
 richani01,Nick Richards,C
 smithni01,Nick Smith Jr.,SG
 alexani01,Nickeil Alexander-Walker,SG
@@ -471,12 +501,12 @@ watsope01,Peyton Watson,SF
 achiupr01,Precious Achiuwa,C
 grimequ01,Quentin Grimes,SG
 jacksqu01,Quenton Jackson,PG
-postqu01,Quinten Post,PF
+postqu01,Quinten Post,C
 barrerj01,RJ Barrett,SF
 flemira01,Rasheer Fleming,PF
 dennira01,RayJ Dennis,PG
 ruperra01,Rayan Rupert,SG
-sheppre01,Reed Sheppard,SG
+sheppre01,Reed Sheppard,PG
 minixri01,Riley Minix,SF
 dilliro01,Rob Dillingham,PG
 williro04,Robert Williams,C
@@ -487,6 +517,7 @@ onealro01,Royce O'Neale,SF
 goberru01,Rudy Gobert,C
 hachiru01,Rui Hachimura,PF
 westbru01,Russell Westbrook,SF
+conwery01,Ryan Conwell,SG
 dunnry01,Ryan Dunn,SF
 kalkbry01,Ryan Kalkbrenner,C
 nembhry01,Ryan Nembhard,PG
@@ -494,12 +525,13 @@ rolliry01,Ryan Rollins,PG
 beysa01,Saddiq Bey,SF
 hausesa01,Sam Hauser,PF
 merrisa01,Sam Merrill,SG
-mamuksa01,Sandro Mamukelashvili,C
+mamuksa01,Sandro Mamukelashvili,PF
 aldamsa01,Santi Aldama,PF
 hendesc01,Scoot Henderson,PG
 barnesc01,Scottie Barnes,PF
 pippesc02,Scotty Pippen Jr.,PG
 pedulse01,Sean Pedulla,PG
+delarse01,Sergio de Larrea,PG
 curryse01,Seth Curry,SG
 sharpsh01,Shaedon Sharpe,SG
 gilgesh01,Shai Gilgeous-Alexander,PG
@@ -518,6 +550,7 @@ mccontj01,T.J. McConnell,PG
 peterta01,Taelon Peter,SG
 gibsota01,Taj Gibson,C
 easonta01,Tari Eason,PF
+reedjta01,Tarris Reed Jr.,C
 princta02,Taurean Prince,SF
 hendrta01,Taylor Hendricks,PF
 mannte01,Terance Mann,SG
@@ -526,6 +559,7 @@ antetth01,Thanasis Antetokounmpo,SF
 bryanth01,Thomas Bryant,C
 salauti01,Tidjane Salaün,PF
 hardati02,Tim Hardaway Jr.,SG
+awakato01,Tobe Awaka,PF
 harrito02,Tobias Harris,PF
 okanito01,Toby Okani,SG
 smithto05,Tolu Smith,PF
@@ -543,6 +577,7 @@ flowetr01,Trentyn Flowers,SF
 keelstr01,Trevor Keels,SG
 alexatr01,Trey Alexander,SG
 jemistr01,Trey Jemison,C
+lylestr01,Trey Lyles,PF
 murphtr02,Trey Murphy III,SF
 dasiltr01,Tristan Da Silva,SF
 enarutr01,Tristan Enaruna,SF
@@ -554,6 +589,7 @@ burtoty01,Tyler Burton,SF
 herroty01,Tyler Herro,SG
 kolekty01,Tyler Kolek,PG
 smithty02,Tyler Smith,PF
+halibty01,Tyrese Haliburton,PG
 martity01,Tyrese Martin,SG
 maxeyty01,Tyrese Maxey,PG
 proctty01,Tyrese Proctor,PG
@@ -575,10 +611,11 @@ tillmxa01,Xavier Tillman Sr.,C
 yangha01,Yang Hansen,C
 ,Yanic Konan Niederhauser,C
 konanya01,Yanic Konan Niederhäuser,C
+lendeya01,Yaxel Lendeborg,SF
 kawamyu01,Yuki Kawamura,PG
 missiyv01,Yves Missi,C
 risacza01,Zaccharie Risacher,SF
-colliza01,Zach Collins,C
+colliza01,Zach Collins,PF
 edeyza01,Zach Edey,C
 lavinza01,Zach LaVine,SG
 nnajize01,Zeke Nnaji,PF

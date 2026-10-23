@@ -10,7 +10,7 @@ Output carries `player_id` alongside the display name, so accented names
 (Luka Doncic, Nikola Jokic) stop depending on exact string matching.
 
 Usage:
-    python -m backend.nba_position_scraper --season 2026
+    python -m backend.nba_position_scraper --season 2027
 """
 import argparse
 import os
@@ -107,8 +107,8 @@ def update_positions_file(season, path=POSITIONS_PATH, delay=DEFAULT_DELAY):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--season', type=int, default=2026,
-                        help='season end year, e.g. 2026 = the 2025-26 season')
+    parser.add_argument('--season', type=int, default=2027,
+                        help='season end year, e.g. 2027 = the 2026-27 season')
     parser.add_argument('--out', default=POSITIONS_PATH)
     parser.add_argument('--delay', type=float, default=DEFAULT_DELAY)
     args = parser.parse_args()

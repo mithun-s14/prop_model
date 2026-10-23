@@ -61,12 +61,12 @@ ROTATION_SHOTS_PG = 5.0
 
 # Season end-year that cached_player_info.csv describes. `experience` follows
 # Basketball Reference's convention of counting PRIOR seasons ('R' = rookie):
-# Dyson Daniels (rookie 2022-23) shows 3, Stephon Castle (rookie 2024-25) 1,
-# Cooper Flagg 'R', which only fits 2025-26, matching cache_metadata.json.
-# Cross-checked against the game logs: for 375 players whose first logged season
-# is after 2019, 363 match 2026 - first_season exactly and 3 (0.8%) differ by
+# Stephon Castle (rookie 2024-25) shows 2, Kingston Flemings (2026 draft) 'R',
+# which only fits 2026-27, matching cache_metadata.json.
+# Cross-checked against the game logs: for 325 players whose first logged season
+# is after 2019, 313 match 2027 - first_season exactly and 3 (0.9%) differ by
 # more than one year.
-PLAYER_INFO_SNAPSHOT_SEASON = 2026
+PLAYER_INFO_SNAPSHOT_SEASON = 2027
 
 MIN_GP_FEATURE = 20   # enough history to profile a player
 MIN_GP_TARGET = 15    # deliberately looser -- a higher bar induces survivorship bias

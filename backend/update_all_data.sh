@@ -19,4 +19,4 @@ echo "3. Running position scraper..."
 # Package-style module (imports `backend.historical_gamelog_scraper`), so it
 # must run from the repo root -- from inside backend/ it fails with
 # "No module named 'backend'".
-(cd .. && python -m backend.nba_position_scraper --season 2026)
+(cd .. && python -m backend.nba_position_scraper --season 2027)

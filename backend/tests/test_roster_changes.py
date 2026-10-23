@@ -514,7 +514,9 @@ def test_real_roster_file_only_lists_players_who_changed_something(
     from season_features import aggregate_player_seasons
 
     seasons = aggregate_player_seasons(real_gamelog)
-    latest = seasons[seasons['season'] == seasons['season'].max()]
+    # Pinned, not max(): once 2026-27 games are logged, max() is the season
+    # these moves already happened in
+    latest = seasons[seasons['season'] == 2026]
     prior_team = dict(zip(latest['player'], latest['team']))
 
     stayers = []

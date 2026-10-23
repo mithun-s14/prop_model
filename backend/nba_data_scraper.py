@@ -11,6 +11,9 @@ import time
 import re
 from scrapling.fetchers import Fetcher
 
+# Season end-year (2027 = the 2026-27 season), Basketball Reference numbering
+CURRENT_SEASON = 2027
+
 # NBA team abbreviations for Basketball Reference
 NBA_TEAMS = [
     'ATL', 'BOS', 'BRK', 'CHO', 'CHI', 'CLE', 'DAL', 'DEN', 'DET', 'GSW',
@@ -71,7 +74,7 @@ def safe_request(url, max_retries=3):
     return None
 
 
-def scrape_team_roster(team_abbr, season=2026):
+def scrape_team_roster(team_abbr, season=CURRENT_SEASON):
     """Scrape team roster from Basketball Reference"""
     url = f"https://www.basketball-reference.com/teams/{team_abbr}/{season}.html"
     print(f"  Fetching: {url}")
@@ -133,9 +136,9 @@ def scrape_team_roster(team_abbr, season=2026):
         return []
 
 
-def scrape_schedule(season=2025):
+def scrape_schedule(season=CURRENT_SEASON - 1):
     """Scrape NBA schedule from Basketball Reference.
-    season parameter is the start year (2025 for 2025-26 season).
+    season parameter is the start year (2026 for 2026-27 season).
     """
     months = ['october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june']
     all_games = []
@@ -223,7 +226,7 @@ def scrape_all_teams(current_dir):
     return all_teams
 
 
-def scrape_active_players_from_rosters(current_dir, season=2026):
+def scrape_active_players_from_rosters(current_dir, season=CURRENT_SEASON):
     """Get active players by scraping team rosters from Basketball Reference"""
     print("Scraping active players from team rosters...")
 
@@ -361,14 +364,14 @@ def main():
     print(f"Saving files to: {current_dir}")
 
     start_time = time.time()
-    current_season = 2026
+    current_season = CURRENT_SEASON
 
     # 1. Load active players from cached files
     active_players, _ = load_cached_players(current_dir)
 
     # 2. Scrape schedule once and reuse for both gamelog and today's games
     print("Scraping full season schedule...")
-    all_games = scrape_schedule(season=2025)  # 2025-26 season
+    all_games = scrape_schedule(season=current_season - 1)
     print(f"Total games in schedule: {len(all_games)}")
 
     # 3. Scrape today's games (reuses already-fetched schedule)
