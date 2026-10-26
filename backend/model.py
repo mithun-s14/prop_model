@@ -5,6 +5,7 @@ import json
 import pandas as pd
 import numpy as np
 from backend.last15_scraper import get_player_last15_features
+from backend.covers_odds_scraper import get_team_lines
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
 from sklearn.preprocessing import StandardScaler
@@ -627,9 +628,14 @@ def get_team_schedule(team_id):
         print(f"Error loading game schedule from cache: {e}")
         return None
 
-def get_tonights_game_context(player_name, spread, total):
+# Used when covers.com has no line for the game (neutral spread, ~league-average total)
+DEFAULT_SPREAD = 0.0
+DEFAULT_TOTAL = 225.5
+
+def get_tonights_game_context(player_name, spread=None, total=None):
     """
-    Get game context using cached data
+    Get game context using cached data. spread/total default to the live
+    covers.com consensus line for the player's game.
     """
     # Get player info from cache
     player_info = get_player_info(player_name)
@@ -667,7 +673,14 @@ def get_tonights_game_context(player_name, spread, total):
             opponent_team = "UNK"
     except:
         opponent_team = "UNK"
-    
+
+    if spread is None or total is None:
+        live_spread, live_total = get_team_lines(team_abbr, opponent_team)
+        if spread is None:
+            spread = live_spread if live_spread is not None else DEFAULT_SPREAD
+        if total is None:
+            total = live_total if live_total is not None else DEFAULT_TOTAL
+
     context = {
         'opponent': opponent_team,
         'is_home': 1 if is_home else 0,
@@ -829,7 +842,7 @@ def get_default_defense_stats():
         'opp_fd_allowed': 45.0,
     }
 
-def create_complete_prediction(player_name, target_stat, spread, total):
+def create_complete_prediction(player_name, target_stat, spread=None, total=None):
     """
     Complete prediction pipeline with real usage rate integration
     """

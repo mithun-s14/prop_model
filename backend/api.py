@@ -82,7 +82,8 @@ def predict():
         print("=" * 30)
         
         # Validate inputs
-        if not all([player_name, target_stat, spread is not None, total is not None]):
+        # spread/total are optional overrides; omitted = live covers.com line
+        if not all([player_name, target_stat]):
             return jsonify({'error': 'Missing required fields'}), 400
         
         # Call your prediction function

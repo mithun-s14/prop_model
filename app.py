@@ -238,7 +238,7 @@ footer { display: none !important; }
 """
 
 
-def predict_player_stats(player_name, target_stat, spread, total):
+def predict_player_stats(player_name, target_stat):
     try:
         if not player_name or not player_name.strip():
             return """<div style="color: #fca5a5; background: rgba(127,29,29,0.3); border: 1px solid #ef4444; border-radius: 8px; padding: 12px;">Please enter a player name</div>"""
@@ -247,8 +247,6 @@ def predict_player_stats(player_name, target_stat, spread, total):
         result = create_complete_prediction(
             player_name.strip(),
             stat_key,
-            float(spread),
-            float(total)
         )
 
         if result is None:
@@ -326,24 +324,13 @@ with gr.Blocks(title="NBA Predictive Analytics", css=custom_css, theme=gr.themes
                 choices=["Points", "Assists", "Rebounds"],
                 value="Points"
             )
-        with gr.Row():
-            spread_input = gr.Number(
-                label="Spread",
-                value=-5.5,
-                step=0.5
-            )
-            total_input = gr.Number(
-                label="Total",
-                value=225.5,
-                step=0.5
-            )
         predict_btn = gr.Button("📊 Generate Prediction", variant="primary", elem_classes="predict-btn")
 
     output = gr.HTML(elem_classes="results-card")
 
     predict_btn.click(
         fn=predict_player_stats,
-        inputs=[player_input, stat_input, spread_input, total_input],
+        inputs=[player_input, stat_input],
         outputs=output
     )
 

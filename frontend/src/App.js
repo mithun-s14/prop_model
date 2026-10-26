@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 export default function NBAPredictor() {
   const [playerName, setPlayerName] = useState('');
   const [targetStat, setTargetStat] = useState('points');
-  const [spread, setSpread] = useState('');
-  const [total, setTotal] = useState('');
   const [predictions, setPredictions] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,10 +12,6 @@ export default function NBAPredictor() {
   const handlePredict = async () => {
     if (!playerName.trim()) {
       setError('Please enter a player name');
-      return;
-    }
-    if (!spread || !total) {
-      setError('Please enter both spread and total');
       return;
     }
 
@@ -30,9 +24,7 @@ export default function NBAPredictor() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         player_name: playerName,
-        target_stat: targetStat,
-        spread: parseFloat(spread),
-        total: parseFloat(total)
+        target_stat: targetStat
       })
     });
       
@@ -101,34 +93,6 @@ export default function NBAPredictor() {
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div>
-              <label className="block text-white font-semibold mb-2">
-                📊 Spread
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                value={spread}
-                onChange={(e) => setSpread(e.target.value)}
-                placeholder="e.g., -5.5"
-                className="w-full px-4 py-3 rounded-lg bg-zinc-800 text-white placeholder-zinc-500 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-white font-semibold mb-2">
-                📈 Total
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                value={total}
-                onChange={(e) => setTotal(e.target.value)}
-                placeholder="e.g., 225.5"
-                className="w-full px-4 py-3 rounded-lg bg-zinc-800 text-white placeholder-zinc-500 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
             </div>
           </div>
 
