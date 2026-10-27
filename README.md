@@ -18,7 +18,7 @@ An NBA player stat prediction tool that uses an ensemble of six machine learning
 ## Features
 
 - **Ensemble Predictions** — Averages predictions from Bayesian Ridge, Gradient Boost, LightGBM, Linear Regression, Random Forest, and XGBoost models
-- **Game Context Inputs** — Factors in opponent, home/away status, spread, and total
+- **Game Context Inputs** — Factors in opponent and home/away status
 - **Automated Data Scraping** — Fetches player stats, defensive ratings, and usage rates from NBA sources (NBA.com, Basketball Reference)
 - **Dark-Themed UI** — Clean Gradio interface for quick lookups
 
@@ -52,8 +52,7 @@ The app launches at `http://localhost:7860`.
 
 1. Enter a player name (e.g., "LeBron James")
 2. Select a stat — Points, Assists, or Rebounds
-3. Set the game spread and total
-4. Click **Generate Prediction** to see ensemble and individual model results
+3. Click **Generate Prediction** to see ensemble and individual model results
 
 ## Project Structure
 

@@ -71,24 +71,19 @@ def predict():
         
         player_name = data.get('player_name')
         target_stat = data.get('target_stat')
-        spread = data.get('spread')
-        total = data.get('total')
         
         print(f"\n=== Received Request ===")
         print(f"Player: {player_name}")
         print(f"Target Stat: {target_stat}")
-        print(f"Spread: {spread}")
-        print(f"Total: {total}")
         print("=" * 30)
         
         # Validate inputs
-        # spread/total are optional overrides; omitted = live covers.com line
         if not all([player_name, target_stat]):
             return jsonify({'error': 'Missing required fields'}), 400
         
         # Call your prediction function
         print("Calling create_complete_prediction...")
-        result = create_complete_prediction(player_name, target_stat, spread, total)
+        result = create_complete_prediction(player_name, target_stat)
         
         if result is None:
             error_msg = f'Prediction failed for {player_name}. Player may not be found or insufficient data available.'

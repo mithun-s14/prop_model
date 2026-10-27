@@ -136,7 +136,7 @@ export default function NBAPredictor() {
               {predictions.game_context && (
                 <div className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 mb-6">
                   <h3 className="text-white font-semibold mb-3">Game Context</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <div className="text-zinc-400">Opponent</div>
                       <div className="text-white font-bold">{predictions.game_context.opponent}</div>
@@ -144,14 +144,6 @@ export default function NBAPredictor() {
                     <div>
                       <div className="text-zinc-400">Location</div>
                       <div className="text-white font-bold">{predictions.game_context.is_home ? '🏠 Home' : '✈️ Away'}</div>
-                    </div>
-                    <div>
-                      <div className="text-zinc-400">Spread</div>
-                      <div className="text-white font-bold">{predictions.game_context.spread > 0 ? '+' : ''}{predictions.game_context.spread}</div>
-                    </div>
-                    <div>
-                      <div className="text-zinc-400">Total</div>
-                      <div className="text-white font-bold">{predictions.game_context.total}</div>
                     </div>
                   </div>
                 </div>

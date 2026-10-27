@@ -259,9 +259,6 @@ def predict_player_stats(player_name, target_stat):
         opponent = game_context.get('opponent', 'N/A')
         is_home = game_context.get('is_home', False)
         loc = '🏠 Home' if is_home else '✈️ Away'
-        sp = game_context.get('spread', 0)
-        spread_str = f"+{sp}" if sp > 0 else str(sp)
-        tot = game_context.get('total', 0)
 
         models_html = ""
         for model_name, pred in individual_preds.items():
@@ -281,8 +278,6 @@ def predict_player_stats(player_name, target_stat):
     <div class="context-grid">
         <div class="context-item"><div class="context-label">Opponent</div><div class="context-value">{opponent}</div></div>
         <div class="context-item"><div class="context-label">Location</div><div class="context-value">{loc}</div></div>
-        <div class="context-item"><div class="context-label">Spread</div><div class="context-value">{spread_str}</div></div>
-        <div class="context-item"><div class="context-label">Total</div><div class="context-value">{tot}</div></div>
     </div>
 </div>
 

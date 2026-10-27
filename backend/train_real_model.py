@@ -5,7 +5,7 @@ instead of the synthetic, formula-derived targets used by
 
 Why this exists: the production training path in model.py never learns from
 real points scored — it generates synthetic targets via a hand-written
-formula (`pts_5g_avg * usage_factor * opp_factor * home_boost * total_factor
+formula (`pts_5g_avg * usage_factor * opp_factor * home_boost
 * noise`) and fits models to reproduce that formula. A backtest of that path
 (backend/backtest_model.py) confirmed it loses to a naive season-average
 baseline (MAE 5.485 vs. 4.950 on points). This module builds a real,
@@ -22,9 +22,8 @@ Dataset construction (per player, chronological):
     set.
 
 Known limitation (disclosed, not hidden): usage_rate and opponent defense
-stats are current-season snapshots, not point-in-time historical values, and
-spread/total are held at a neutral default since historical odds aren't
-scraped. Rolling scoring history, home/away, and opponent are real and
+stats are current-season snapshots, not point-in-time historical values.
+Rolling scoring history, home/away, and opponent are real and
 point-in-time.
 """
 import os
@@ -48,13 +47,10 @@ from model import (
 
 GAMELOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'cached_player_gamelogs.csv')
 
-NEUTRAL_SPREAD = 0
-NEUTRAL_TOTAL = 225.0
-
 FEATURE_COLUMNS = [
     'pts_5g_avg', 'reb_5g_avg', 'ast_5g_avg', 'mins_5g_avg', 'fga_5g_avg',
     'fg3a_5g_avg', 'fta_5g_avg', 'stl_5g_avg', 'blk_5g_avg', 'tov_5g_avg',
-    'usage_rate', 'is_home', 'spread', 'total',
+    'usage_rate', 'is_home',
     'opp_pts_allowed', 'opp_reb_allowed', 'opp_ast_allowed', 'opp_fd_allowed',
 ]
 
@@ -152,8 +148,6 @@ def build_training_dataset(gamelog_df, min_prior_games=5, rolling_window=5, verb
                     'tov_5g_avg': rolling_feats.get('tov_roll_avg', 0),
                     'usage_rate': usage_rate,
                     'is_home': is_home,
-                    'spread': NEUTRAL_SPREAD,
-                    'total': NEUTRAL_TOTAL,
                     'opp_pts_allowed': defense_stats['opp_pts_allowed'],
                     'opp_reb_allowed': defense_stats['opp_reb_allowed'],
                     'opp_ast_allowed': defense_stats['opp_ast_allowed'],

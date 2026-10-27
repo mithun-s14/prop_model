@@ -94,8 +94,6 @@ def sample_game_context():
     return {
         'opponent': 'BOS',
         'is_home': 1,
-        'spread': -3.5,
-        'total': 225.5,
     }
 
 

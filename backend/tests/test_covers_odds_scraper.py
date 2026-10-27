@@ -1,6 +1,6 @@
 """
-Tests for covers_odds_scraper.py and the live-line fallback in
-get_tonights_game_context. HTML fixtures mirror the covers.com odds page
+Tests for covers_odds_scraper.py (standalone; the model no longer uses
+spread/total). HTML fixtures mirror the covers.com odds page
 markup (tr.oddsGameRow / td[data-book] / .home-cell a).
 """
 import os
@@ -120,41 +120,21 @@ class TestFetchGameLines:
             assert covers_odds_scraper.fetch_game_lines()[('MIN', 'CLE')]['total'] == 232.5
 
 
-class TestGameContextUsesLiveLines:
-    """get_tonights_game_context pulls the line when spread/total aren't given."""
+class TestGameContextIgnoresOdds:
+    """Spread/total were dropped from the model; the scraper is kept standalone."""
 
-    @pytest.fixture
-    def ctx(self):
+    def test_context_has_no_odds_and_never_fetches(self):
         import model
         with patch.object(model, 'get_player_info', return_value={'id': 'x', 'team': 'MIN'}), \
              patch.object(model, 'get_player_team_id', return_value=1), \
              patch.object(model, 'get_team_schedule',
                           return_value={'HOME_TEAM_ID': 2, 'VISITOR_TEAM_ID': 1}), \
              patch.object(model.pd, 'read_csv',
-                          return_value=model.pd.DataFrame({'id': [2], 'abbreviation': ['CLE']})):
-            yield model
-
-    def test_live_lines_used(self, ctx):
-        with patch.object(ctx, 'get_team_lines', return_value=(3.5, 232.5)) as g:
-            c = ctx.get_tonights_game_context('Anthony Edwards')
-        g.assert_called_once_with('MIN', 'CLE')
-        assert c == {'opponent': 'CLE', 'is_home': 0, 'spread': 3.5, 'total': 232.5}
-
-    def test_manual_override_skips_fetch(self, ctx):
-        with patch.object(ctx, 'get_team_lines') as g:
-            c = ctx.get_tonights_game_context('Anthony Edwards', -1.0, 210.0)
-        g.assert_not_called()
-        assert (c['spread'], c['total']) == (-1.0, 210.0)
-
-    def test_falls_back_to_defaults_when_no_line(self, ctx):
-        with patch.object(ctx, 'get_team_lines', return_value=(None, None)):
-            c = ctx.get_tonights_game_context('Anthony Edwards')
-        assert (c['spread'], c['total']) == (ctx.DEFAULT_SPREAD, ctx.DEFAULT_TOTAL)
-
-    def test_partial_override_fills_other_from_live(self, ctx):
-        with patch.object(ctx, 'get_team_lines', return_value=(3.5, 232.5)):
-            c = ctx.get_tonights_game_context('Anthony Edwards', spread=-2.0)
-        assert (c['spread'], c['total']) == (-2.0, 232.5)
+                          return_value=model.pd.DataFrame({'id': [2], 'abbreviation': ['CLE']})), \
+             patch.object(covers_odds_scraper, 'fetch_game_lines') as fetch:
+            c = model.get_tonights_game_context('Anthony Edwards')
+        fetch.assert_not_called()
+        assert c == {'opponent': 'CLE', 'is_home': 0}
 
 
 @pytest.mark.parametrize('req_file', ['requirements.txt', os.path.join('backend', 'requirements.txt')])

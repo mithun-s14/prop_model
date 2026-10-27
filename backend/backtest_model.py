@@ -14,10 +14,9 @@ player's actual points in the held-out game.
 
 Known limitation (disclosed, not hidden): `usage_rate` and opponent defense
 stats are only available as current-season snapshots, not point-in-time
-historical values, and per-game spread/total are not available historically
-(only "today's" odds are scraped). Those three inputs are therefore held at
-their current-season / neutral values for every backtest point, same as they
-would be if you ran the live pipeline today. Everything else (rolling scoring
+historical values. Those inputs are therefore held at their current-season
+values for every backtest point, same as they would be if you ran the live
+pipeline today. Everything else (rolling scoring
 history, home/away, opponent) is real, point-in-time, and leakage-free.
 """
 import os
@@ -38,9 +37,6 @@ from model import (
 )
 
 GAMELOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'cached_player_gamelogs.csv')
-
-NEUTRAL_SPREAD = 0
-NEUTRAL_TOTAL = 225.0
 
 
 def _home_team_from_game_id(game_id):
@@ -118,8 +114,6 @@ def run_model_backtest(gamelog_df, min_prior_games=5, max_players=None, verbose=
             game_context = {
                 'opponent': case['opponent'],
                 'is_home': case['is_home'],
-                'spread': NEUTRAL_SPREAD,
-                'total': NEUTRAL_TOTAL,
             }
 
             position = get_player_position(case['player'])
@@ -147,8 +141,6 @@ def run_model_backtest(gamelog_df, min_prior_games=5, max_players=None, verbose=
                 'tov_5g_avg': player_features.get('tov_roll_avg', 0),
                 'usage_rate': real_usage_rate,
                 'is_home': game_context['is_home'],
-                'spread': game_context['spread'],
-                'total': game_context['total'],
                 'opp_pts_allowed': defense_stats['opp_pts_allowed'],
                 'opp_reb_allowed': defense_stats['opp_reb_allowed'],
                 'opp_ast_allowed': defense_stats['opp_ast_allowed'],

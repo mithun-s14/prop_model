@@ -5,7 +5,6 @@ import json
 import pandas as pd
 import numpy as np
 from backend.last15_scraper import get_player_last15_features
-from backend.covers_odds_scraper import get_team_lines
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
 from sklearn.preprocessing import StandardScaler
@@ -59,8 +58,6 @@ class NBAProjectionModel:
             'tov_5g_avg': player_features.get('tov_roll_avg', 2.5),
             'usage_rate': real_usage_rate,  # Use real usage rate instead of rolling average
             'is_home': game_context['is_home'],
-            'spread': game_context['spread'],
-            'total': game_context['total'],
             'opp_pts_allowed': defense_stats['opp_pts_allowed'],
             'opp_reb_allowed': defense_stats['opp_reb_allowed'],
             'opp_ast_allowed': defense_stats['opp_ast_allowed'],
@@ -107,10 +104,9 @@ class NBAProjectionModel:
             
             # Adjust for game context
             home_boost = 1.05 if sample_features['is_home'] else 0.98
-            total_factor = sample_features['total'] / 220.0
             
             # Final predictions with all factors
-            predicted_pts = base_pts * opp_factor_pts * home_boost * total_factor * np.random.uniform(0.95, 1.05)
+            predicted_pts = base_pts * opp_factor_pts * home_boost * np.random.uniform(0.95, 1.05)
             predicted_reb = base_reb * opp_factor_reb * home_boost * np.random.uniform(0.95, 1.05)
             predicted_ast = base_ast * opp_factor_ast * home_boost * np.random.uniform(0.95, 1.05)
             
@@ -628,14 +624,9 @@ def get_team_schedule(team_id):
         print(f"Error loading game schedule from cache: {e}")
         return None
 
-# Used when covers.com has no line for the game (neutral spread, ~league-average total)
-DEFAULT_SPREAD = 0.0
-DEFAULT_TOTAL = 225.5
-
-def get_tonights_game_context(player_name, spread=None, total=None):
+def get_tonights_game_context(player_name):
     """
-    Get game context using cached data. spread/total default to the live
-    covers.com consensus line for the player's game.
+    Get game context using cached data
     """
     # Get player info from cache
     player_info = get_player_info(player_name)
@@ -674,18 +665,10 @@ def get_tonights_game_context(player_name, spread=None, total=None):
     except:
         opponent_team = "UNK"
 
-    if spread is None or total is None:
-        live_spread, live_total = get_team_lines(team_abbr, opponent_team)
-        if spread is None:
-            spread = live_spread if live_spread is not None else DEFAULT_SPREAD
-        if total is None:
-            total = live_total if live_total is not None else DEFAULT_TOTAL
 
     context = {
         'opponent': opponent_team,
         'is_home': 1 if is_home else 0,
-        'spread': spread,
-        'total': total,
     }
     
     print(f"Game context for {team_abbr}: {context}")
@@ -842,7 +825,7 @@ def get_default_defense_stats():
         'opp_fd_allowed': 45.0,
     }
 
-def create_complete_prediction(player_name, target_stat, spread=None, total=None):
+def create_complete_prediction(player_name, target_stat):
     """
     Complete prediction pipeline with real usage rate integration
     """
@@ -868,7 +851,7 @@ def create_complete_prediction(player_name, target_stat, spread=None, total=None
     print(f"Other features: { {k: round(v, 2) for k, v in player_features.items() if k != 'usage_rate'} }")
     
     # 4. Get Game Context
-    game_context = get_tonights_game_context(player_name, spread, total)
+    game_context = get_tonights_game_context(player_name)
     
     # 5. Get Opponent Defense Stats
     position = get_player_position(player_name)
@@ -897,8 +880,6 @@ def create_complete_prediction(player_name, target_stat, spread=None, total=None
         'tov_5g_avg': player_features.get('tov_roll_avg', 0),
         'usage_rate': real_usage_rate,  # Use real usage rate
         'is_home': game_context['is_home'],
-        'spread': game_context['spread'],
-        'total': game_context['total'],
         'opp_pts_allowed': defense_stats['opp_pts_allowed'],
         'opp_reb_allowed': defense_stats['opp_reb_allowed'],
         'opp_ast_allowed': defense_stats['opp_ast_allowed'],
@@ -948,8 +929,6 @@ def print_prediction_results(result):
     print(f"\nGame Context:")
     print(f"  Opponent: {result['game_context']['opponent']}")
     print(f"  Home/Away: {'Home' if result['game_context']['is_home'] else 'Away'}")
-    print(f"  Spread: {result['game_context']['spread']}")
-    print(f"  Total: {result['game_context']['total']}")
     
     print(f"\nKey Features:")
     features = result['features']
@@ -963,8 +942,6 @@ def print_prediction_results(result):
 # Main execution
 if __name__ == "__main__":
     player_to_predict = "Jayson Tatum" # Change this to predict for different players
-    spread = -3.5
-    total = 235.5
 
     # Choose what to predict
     target_options = ['Points', 'Rebounds', 'Assists']
@@ -974,7 +951,7 @@ if __name__ == "__main__":
     print("Using Multiple ML Models: Linear, Bayesian, Random Forest, XGBoost, LightGBM, Neural Networks")
     print("="*70)
     
-    result = create_complete_prediction(player_to_predict, target_choice, spread, total)
+    result = create_complete_prediction(player_to_predict, target_choice)
     
     if result:
         print_prediction_results(result)

@@ -89,6 +89,20 @@ class TestTrainModelsOnTheFly:
         assert len(feature_columns) > 0
 
     @patch('model.calculate_usage_rate', return_value=28.5)
+    def test_spread_and_total_are_not_features(self, mock_usage, sample_player_features, sample_game_context, sample_defense_stats):
+        # Dropped: they barely moved predictions (smaller than seed noise). Even if
+        # a caller still passes them in the context, they must not leak in.
+        model = NBAProjectionModel()
+        model.initialize_models()
+        context = {**sample_game_context, 'spread': -3.5, 'total': 225.5}
+        _, feature_columns = model.train_models_on_the_fly(
+            sample_player_features, context, sample_defense_stats,
+            'LeBron James', 'Points'
+        )
+        assert 'spread' not in feature_columns
+        assert 'total' not in feature_columns
+
+    @patch('model.calculate_usage_rate', return_value=28.5)
     def test_stores_model_scores(self, mock_usage, sample_player_features, sample_game_context, sample_defense_stats):
         model = NBAProjectionModel()
         model.initialize_models()
@@ -137,7 +151,7 @@ class TestEnsemblePrediction:
             'mins_5g_avg': 34.2, 'fga_5g_avg': 18.5, 'fg3a_5g_avg': 4.8,
             'fta_5g_avg': 6.2, 'stl_5g_avg': 1.3, 'blk_5g_avg': 0.9,
             'tov_5g_avg': 3.1, 'usage_rate': 28.5, 'is_home': 1,
-            'spread': -3.5, 'total': 225.5, 'opp_pts_allowed': 24.5,
+            'opp_pts_allowed': 24.5,
             'opp_reb_allowed': 7.8, 'opp_ast_allowed': 5.9, 'opp_fd_allowed': 42.0,
         }
         prediction_input = pd.DataFrame([feature_dict])
@@ -166,7 +180,7 @@ class TestEnsemblePrediction:
             'mins_5g_avg': 34.2, 'fga_5g_avg': 18.5, 'fg3a_5g_avg': 4.8,
             'fta_5g_avg': 6.2, 'stl_5g_avg': 1.3, 'blk_5g_avg': 0.9,
             'tov_5g_avg': 3.1, 'usage_rate': 28.5, 'is_home': 1,
-            'spread': -3.5, 'total': 225.5, 'opp_pts_allowed': 24.5,
+            'opp_pts_allowed': 24.5,
             'opp_reb_allowed': 7.8, 'opp_ast_allowed': 5.9, 'opp_fd_allowed': 42.0,
         }
         prediction_input = pd.DataFrame([feature_dict])
@@ -193,7 +207,7 @@ class TestEnsemblePrediction:
             'mins_5g_avg': 34.2, 'fga_5g_avg': 18.5, 'fg3a_5g_avg': 4.8,
             'fta_5g_avg': 6.2, 'stl_5g_avg': 1.3, 'blk_5g_avg': 0.9,
             'tov_5g_avg': 3.1, 'usage_rate': 28.5, 'is_home': 1,
-            'spread': -3.5, 'total': 225.5, 'opp_pts_allowed': 24.5,
+            'opp_pts_allowed': 24.5,
             'opp_reb_allowed': 7.8, 'opp_ast_allowed': 5.9, 'opp_fd_allowed': 42.0,
         }
         prediction_input = pd.DataFrame([feature_dict])
@@ -212,8 +226,8 @@ class TestEdgeCases:
         model = NBAProjectionModel()
         model.initialize_models()
 
-        home_context = {'opponent': 'BOS', 'is_home': 1, 'spread': -3.5, 'total': 225.5}
-        away_context = {'opponent': 'BOS', 'is_home': 0, 'spread': -3.5, 'total': 225.5}
+        home_context = {'opponent': 'BOS', 'is_home': 1}
+        away_context = {'opponent': 'BOS', 'is_home': 0}
 
         trained_home, cols_home = model.train_models_on_the_fly(
             sample_player_features, home_context, sample_defense_stats,
@@ -225,7 +239,7 @@ class TestEdgeCases:
             'mins_5g_avg': 34.2, 'fga_5g_avg': 18.5, 'fg3a_5g_avg': 4.8,
             'fta_5g_avg': 6.2, 'stl_5g_avg': 1.3, 'blk_5g_avg': 0.9,
             'tov_5g_avg': 3.1, 'usage_rate': 28.5, 'is_home': 1,
-            'spread': -3.5, 'total': 225.5, 'opp_pts_allowed': 24.5,
+            'opp_pts_allowed': 24.5,
             'opp_reb_allowed': 7.8, 'opp_ast_allowed': 5.9, 'opp_fd_allowed': 42.0,
         }
 
