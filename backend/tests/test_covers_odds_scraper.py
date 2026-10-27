@@ -155,3 +155,14 @@ class TestGameContextUsesLiveLines:
         with patch.object(ctx, 'get_team_lines', return_value=(3.5, 232.5)):
             c = ctx.get_tonights_game_context('Anthony Edwards', spread=-2.0)
         assert (c['spread'], c['total']) == (-2.0, 232.5)
+
+
+@pytest.mark.parametrize('req_file', ['requirements.txt', os.path.join('backend', 'requirements.txt')])
+def test_scraper_deps_in_every_requirements_file(req_file):
+    """Regression: bs4 was only in backend/requirements.txt, so the root
+    (Gradio app) deploy crashed on `import bs4` at startup."""
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    with open(os.path.join(root, req_file)) as fh:
+        names = {line.split('==')[0].split('[')[0].strip().lower() for line in fh
+                 if line.strip() and not line.startswith('#')}
+    assert {'requests', 'beautifulsoup4'} <= names
