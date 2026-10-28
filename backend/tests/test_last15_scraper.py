@@ -179,6 +179,35 @@ class TestLoadFantasyProsLast15:
             load_fantasypros_last15(force_refresh=True)
         mock_scrape.assert_called_once()
 
+    @patch('last15_scraper.scrape_fantasypros_last15')
+    @patch('last15_scraper.pd.read_csv')
+    @patch('last15_scraper.os.path.getmtime')
+    @patch('last15_scraper.os.path.exists', return_value=True)
+    def test_no_scrape_when_disallowed_even_if_stale(self, mock_exists, mock_mtime, mock_csv, mock_scrape, sample_fantasypros_df):
+        mock_mtime.return_value = (datetime.now() - timedelta(hours=48)).timestamp()
+        mock_csv.return_value = sample_fantasypros_df
+        result = load_fantasypros_last15(allow_scrape=False)
+        mock_scrape.assert_not_called()
+        assert not result.empty
+
+    @patch('last15_scraper.scrape_fantasypros_last15')
+    @patch('last15_scraper.os.path.exists', return_value=False)
+    def test_no_scrape_when_disallowed_and_no_cache(self, mock_exists, mock_scrape):
+        result = load_fantasypros_last15(allow_scrape=False)
+        mock_scrape.assert_not_called()
+        assert result.empty
+
+    @patch('last15_scraper.scrape_fantasypros_last15')
+    @patch('last15_scraper.pd.read_csv')
+    @patch('last15_scraper.os.path.getmtime')
+    @patch('last15_scraper.os.path.exists', return_value=True)
+    def test_prediction_lookup_never_scrapes_stale_cache(self, mock_exists, mock_mtime, mock_csv, mock_scrape, sample_fantasypros_df):
+        mock_mtime.return_value = (datetime.now() - timedelta(hours=48)).timestamp()
+        mock_csv.return_value = sample_fantasypros_df
+        result = get_player_last15_features('LeBron James')
+        mock_scrape.assert_not_called()
+        assert result['pts_roll_avg'] > 0
+
 
 # ---------------------------------------------------------------------------
 # get_player_last15_features

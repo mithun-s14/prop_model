@@ -88,13 +88,17 @@ def scrape_fantasypros_last15():
     return df
 
 
-def load_fantasypros_last15(force_refresh=False):
+def load_fantasypros_last15(force_refresh=False, allow_scrape=True):
     """
     Load last-15 averages from cache, re-scraping only when fresh data is
     needed AND the scraping environment is available (browser binaries present).
     Falls back to stale cache rather than crashing when scraping is unavailable.
+    allow_scrape=False reads the cache only, never launching a browser.
     """
     cache_exists = os.path.exists(_CACHE_FILE)
+
+    if not allow_scrape:
+        return pd.read_csv(_CACHE_FILE) if cache_exists else pd.DataFrame()
 
     if not force_refresh and cache_exists:
         file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(_CACHE_FILE))
@@ -132,7 +136,10 @@ def get_player_last15_features(player_name):
     min_roll_avg, fga_roll_avg, fg3a_roll_avg, fta_roll_avg,
     stl_roll_avg, blk_roll_avg, tov_roll_avg
     """
-    df = load_fantasypros_last15()
+    # Never scrape in the request path. On Render the CSV's mtime is the deploy
+    # time, so once a deploy is >24h old every prediction launched a headless
+    # browser. The daily GitHub Action refreshes this CSV and redeploys.
+    df = load_fantasypros_last15(allow_scrape=False)
     if df.empty:
         return {}
 
