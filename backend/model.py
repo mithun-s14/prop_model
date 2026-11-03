@@ -825,6 +825,10 @@ def get_default_defense_stats():
         'opp_fd_allowed': 45.0,
     }
 
+class NoGameError(Exception):
+    """Player has no game scheduled today."""
+
+
 def create_complete_prediction(player_name, target_stat):
     """
     Complete prediction pipeline with real usage rate integration
@@ -836,6 +840,11 @@ def create_complete_prediction(player_name, target_stat):
     if not player_info:
         print(f"Player '{player_name}' not found.")
         return None
+
+    # Bail before any feature/model work if the player isn't playing today
+    game_context = get_tonights_game_context(player_name)
+    if not game_context:
+        raise NoGameError(f"{player_name} does not have a game today.")
     
     # 2. Get last 15 days averages from FantasyPros (replaces gamelog scraping)
     player_features = get_player_last15_features(player_name)
@@ -849,9 +858,6 @@ def create_complete_prediction(player_name, target_stat):
     
     print(f"Player features - Usage Rate: {real_usage_rate}%")
     print(f"Other features: { {k: round(v, 2) for k, v in player_features.items() if k != 'usage_rate'} }")
-    
-    # 4. Get Game Context
-    game_context = get_tonights_game_context(player_name)
     
     # 5. Get Opponent Defense Stats
     position = get_player_position(player_name)

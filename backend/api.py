@@ -7,7 +7,7 @@ import gc
 
 # Try importing model
 try:
-    from model import create_complete_prediction
+    from model import create_complete_prediction, NoGameError
     MODEL_LOADED = True
     print("Model loaded successfully")
 except Exception as e:
@@ -83,7 +83,10 @@ def predict():
         
         # Call your prediction function
         print("Calling create_complete_prediction...")
-        result = create_complete_prediction(player_name, target_stat)
+        try:
+            result = create_complete_prediction(player_name, target_stat)
+        except NoGameError as e:
+            return jsonify({'error': str(e)}), 404
         
         if result is None:
             error_msg = f'Prediction failed for {player_name}. Player may not be found or insufficient data available.'

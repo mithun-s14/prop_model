@@ -8,7 +8,7 @@ import json
 # Add backend to path so we can import from it
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-from model import create_complete_prediction
+from model import create_complete_prediction, NoGameError
 
 STAT_MAP = {"Points": "Points", "Assists": "Assists", "Rebounds": "Rebounds"}
 
@@ -287,10 +287,8 @@ def predict_player_stats(player_name, target_stat):
 </div>
 """
 
-    except TypeError as e:
-        if "'NoneType' object is not subscriptable" in str(e):
-            return f"""<div style="color: #fca5a5; background: rgba(127,29,29,0.3); border: 1px solid #ef4444; border-radius: 8px; padding: 12px;">Prediction unavailable: <strong>{player_name.strip()}</strong> does not have a game today.</div>"""
-        return f"""<div style="color: #fca5a5; background: rgba(127,29,29,0.3); border: 1px solid #ef4444; border-radius: 8px; padding: 12px;">Error: {str(e)}</div>"""
+    except NoGameError:
+        return f"""<div style="color: #fca5a5; background: rgba(127,29,29,0.3); border: 1px solid #ef4444; border-radius: 8px; padding: 12px;">Prediction unavailable: <strong>{player_name.strip()}</strong> does not have a game today.</div>"""
     except Exception as e:
         return f"""<div style="color: #fca5a5; background: rgba(127,29,29,0.3); border: 1px solid #ef4444; border-radius: 8px; padding: 12px;">Error: {str(e)}</div>"""
 
