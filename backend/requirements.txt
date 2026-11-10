@@ -15,6 +15,9 @@ beautifulsoup4
 scrapling[fetchers]
 # camoufox 0.5 dropped `fetch --browserforge`, which `scrapling install` calls.
 camoufox==0.4.11
+# playwright 1.65 sends `legacyInterceptor` in Browser.setDownloadOptions,
+# which camoufox 0.4.11's Firefox build rejects ("not described in this scheme").
+playwright<1.65
 # scrapling[fetchers] does not reliably pull these in; without them its
 # imports fail at runtime and the scrapers silently return no rows.
 msgspec
