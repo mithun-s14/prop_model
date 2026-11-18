@@ -30,11 +30,33 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
 
+    # `camoufox fetch` hits api.github.com unauthenticated (no token support) and
+    # gets 403 rate-limited on shared runner IPs. Cache the browser so it only
+    # downloads when the pinned version changes.
+    - name: Restore Camoufox browser cache
+      id: camoufox-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/.cache/camoufox
+        key: camoufox-${{ runner.os }}-${{ hashFiles('backend/requirements.txt') }}
+
     - name: Install Scrapling browsers
-      run: scrapling install
+      if: steps.camoufox-cache.outputs.cache-hit != 'true'
+      run: scrapling install || (sleep 120 && scrapling install)
+
+    # Save right away so a later scraper failure doesn't skip saving.
+    - name: Save Camoufox browser cache
+      if: steps.camoufox-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ~/.cache/camoufox
+        key: ${{ steps.camoufox-cache.outputs.cache-primary-key }}
 
     - name: Install Playwright browsers
-      run: playwright install --with-deps chromium
+      run: |
+        playwright install --with-deps chromium
+        # system libs camoufox (Firefox) needs; normally done by `scrapling install`
+        playwright install-deps firefox
 
     - name: Run usage rate scraper
       run: |
