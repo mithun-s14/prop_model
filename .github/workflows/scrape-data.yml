@@ -40,9 +40,17 @@ jobs:
         path: ~/.cache/camoufox
         key: camoufox-${{ runner.os }}-${{ hashFiles('backend/requirements.txt') }}
 
+    # camoufox calls the API via `requests`, which reads ~/.netrc, so this
+    # authenticates it with the job token (1000 req/hr instead of shared 60/hr).
     - name: Install Scrapling browsers
       if: steps.camoufox-cache.outputs.cache-hit != 'true'
-      run: scrapling install || (sleep 120 && scrapling install)
+      env:
+        GH_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        printf 'machine api.github.com login x-access-token password %s\n' "$GH_API_TOKEN" > ~/.netrc
+        chmod 600 ~/.netrc
+        scrapling install
+        rm ~/.netrc
 
     # Save right away so a later scraper failure doesn't skip saving.
     - name: Save Camoufox browser cache
