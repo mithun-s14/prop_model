@@ -50,6 +50,13 @@ def test_finds_full_table_regardless_of_position(n_summaries):
     assert list(data["C"]["PTS"]) == [24.0, 24.0]
 
 
+def test_position_header_with_mobile_label():
+    # live site renders the header as "Sort: PositionSort: POS"
+    html = FULL.replace("<th>Sort: Position</th>", "<th>Sort: PositionSort: POS</th>")
+    data = _scrape(f"<html><body>{html}</body></html>")
+    assert sorted(data) == ["C", "PF", "PG", "SF", "SG"]
+
+
 def test_no_tables_returns_empty():
     assert _scrape("<html><body><p>nothing</p></body></html>") == {}
 
@@ -57,6 +64,15 @@ def test_no_tables_returns_empty():
 def test_fetch_error_returns_empty():
     with patch.object(nba_defense_scraper.DynamicFetcher, "fetch", side_effect=RuntimeError("boom")):
         assert scrape_hashtag_basketball_table4() == {}
+
+
+def test_fetch_waits_for_table_not_network_idle():
+    # network_idle never settles on this ad-heavy site and times out on CI
+    with patch.object(nba_defense_scraper.DynamicFetcher, "fetch", side_effect=RuntimeError("x")) as m:
+        scrape_hashtag_basketball_table4()
+    kwargs = m.call_args.kwargs
+    assert kwargs.get("wait_selector") == "table"
+    assert not kwargs.get("network_idle")
 
 
 def test_clean_position_data_strips_ranks():

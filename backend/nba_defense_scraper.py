@@ -20,7 +20,9 @@ def scrape_hashtag_basketball_table4():
         page = DynamicFetcher.fetch(
             "https://hashtagbasketball.com/nba-defense-vs-position",
             headless=True,
-            network_idle=True,
+            # Not network_idle: the site's ads/trackers never go quiet, so it
+            # times out on CI. Waiting for the table is all we need.
+            wait_selector="table",
         )
 
         print("Looking for all tables on the page...")
@@ -48,7 +50,9 @@ def scrape_hashtag_basketball_table4():
         print(f"Raw columns: {main_df.columns.tolist()}")
 
         # Clean column names - remove the "Sort: " prefix
-        main_df.columns = [col.replace('Sort: ', '') for col in main_df.columns]
+        # Header may render as "PositionPOS" (desktop + mobile labels); normalise.
+        main_df.columns = ['Position' if c.startswith('Position') else c
+                           for c in (col.replace('Sort: ', '') for col in main_df.columns)]
         print(f"Cleaned columns: {main_df.columns.tolist()}")
 
         print("\nFirst 3 rows of Table 4:")
